@@ -1,0 +1,27 @@
+[package]
+name = "render"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cgmath = { version = "0.18.0" }
+image = "0.25"
+rand = "0.9"
+rand_chacha = "0.9"
+rayon = "1.11"
+tobj = "4"
+log = "*"
+tinyjson = "2.5"
+quick-error = "2"
+indicatif = { version = "0.17" } 
+lazy_static = "1.4"
+itertools = "0.11"
+
+[dev-dependencies]
+clap = { version = "4.4", features = ["derive"] }
+num_cpus = "*"
+pretty_env_logger = "0.5"
+env_logger = "0.10"
+scan_fmt = "0.2"

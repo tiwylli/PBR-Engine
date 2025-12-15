@@ -1,0 +1,7 @@
+{
+    "accelerator": {
+      "type": "bvh",
+      "builder": "spatial",
+      "axis_selection" : "roundrobin"
+    }
+}

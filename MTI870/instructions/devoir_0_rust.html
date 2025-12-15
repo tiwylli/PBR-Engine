@@ -1,0 +1,129 @@
+<meta charset="utf-8" emacsmode="-*- markdown -*-">
+
+**MTI870 - Devoir 0 - Version 1.04**
+
+Objectifs du devoir
+===============================================================================
+- Récupérer le code de base et mettre en place votre propre dépôt Git
+- Mettre en place votre environnement de travail et compiler votre code
+- Mettre en pratique l'utilisation de bibliothèques pour la programmation
+
+Récupération du code de base
+===============================================================================
+
+## Installation de Git
+
+Vous devez avoir installé Git sur votre ordinateur et l'avoir correctement configuré.
+
+- Windows: https://git-scm.com/download/win
+- Linux: https://git-scm.com/download/linux
+- macOS: https://git-scm.com/download/mac
+
+Git est un programme qui fonctionne en ligne de commande : ouvrez Git Bash pour entrer les commandes qui suivent, ou utilisez un terminal si vous êtes sous GNU/Linux ou macOS.
+
+![Exemple Git Bash sur Windows](imgs/d0-git.png)
+
+## GitHub Classroom
+
+Les devoirs s'effectueront sur GitHub Classroom. Pour pouvoir les réaliser, vous devez créer un compte GitHub. 
+
+__Le lien pour rejoindre la GitHub Classroom est disponible sur Moodle. Faites attention à bien utiliser le bon lien selon que vous choisissez le langage Rust ou C++.__
+
+!!! ERROR: Attention
+    Vous pouvez tester les deux langages lors du devoir 0. Cependant, après le devoir 1, il sera très difficile de changer de langage de programmation.
+
+Vous pouvez suivre la documentation officielle de GitHub pour la configuration : https://docs.github.com/en/get-started/quickstart/set-up-git 
+
+## Votre propre dépôt Git
+
+Après avoir accepté l'invitation de GitHub Classroom, un nouveau dépôt Git privé est créé. 
+Pour cloner ce dépôt, il faut impérativement utiliser la commande suivante:
+```bash
+git clone --recursive <URL-du-depot>
+```
+Si vous n'avez pas utilisé l'option `--recursive`, vous pouvez effectuer les deux commandes suivantes pour initialiser correctement les dépendances:
+```bash
+git submodule update --init --recursive
+```
+En effet, ce projet utilise les [submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) pour récupérer les dépendances du projet. Ces dépendances sont visibles dans le dossier `3rdparty`. 
+
+!!! WARNING
+    Ce répertoire de travail sera utilisé pour tous les devoirs (du premier au dernier). Faites attention à ne pas envoyer des binaires ou des fichiers trop lourds. 
+
+    Les améliorations de ce code vous seront fournies soit par *pull request* soit par un patch.
+
+!!! ERROR: Attention
+    Votre dépôt doit contenir *votre propre solution*. Ce répertoire doit rester *privé*. Il n'est pas autorisé de rendre ce répertoire public pour quelque raison que ce soit. 
+
+Installation de l'environnement
+===============================================================================
+
+Les devoirs de ce cours se feront en C++ ou en Rust. La liste des programmes que vous devez avoir installés sur votre machine
+personnelle est la suivante :
+- Git : gestion de versions, permet de récupérer et synchroniser le code de base
+- CMake : permet la compilation multiplateforme
+- Compilateur C++ récent : il doit prendre en charge au minimum C++17
+
+Ce premier devoir décrit les étapes nécessaires pour les différentes plateformes (Windows, Linux, macOS).
+
+Pour Rust, je décris uniquement son installation sur Windows et Visual Studio Code. 
+
+Visual Studio Code (toutes plateformes / Rust)
+------------------------------------------------------------------------------
+
+Pour installer Rust sur votre machine, utilisez le site suivant : https://rustup.rs/. Ce site vous demandera d'exécuter une commande ou de lancer une installation locale. Cette installation installera la dernière version stable de Rust. 
+
+Ensuite, installez Visual Studio Code : https://code.visualstudio.com/.
+
+Enfin, lancez Visual Studio Code avec votre projet et installez l'extension suivante : `rust-analyzer`. Notez qu'à l'installation ou au redémarrage, Visual Studio Code peut vous demander d'installer des modules complémentaires pour Rust (via Cargo). Acceptez. 
+![Installation extension VS Code - Rust](imgs/d0-code-ext-rust.png)
+
+Pour compiler le devoir 0, ouvrez un terminal et exécutez, dans le dossier du projet, la commande suivante :
+```
+cargo run --release --example=devoir0 --
+```
+Les différentes dépendances ainsi que le code de départ se compileront automatiquement.
+
+Devoir
+===============================================================================
+
+Pour ce devoir, nous allons nous familiariser avec quelques concepts vus en cours concernant les couleurs et l'algèbre linéaire.  
+Ouvrez le fichier correspondant au devoir : `examples/devoir0.rs`.  
+Vous allez éditer ce fichier directement. Ne soyez pas impressionné par la taille de ce fichier : il contient de nombreux commentaires. Lisez-les attentivement, car ils vous donnent des instructions sur la manière d'effectuer les différentes tâches.
+
+Vous pouvez utiliser la commande suivante pour recompiler et exécuter le code :
+```
+cargo run --release --example=devoir0 --
+```
+Notez que le dossier de travail est le dossier où est exécuté `cargo`. 
+
+## Tâche 1 : Algèbre linéaire
+
+Allez dans la fonction `task_1_maths()` et corrigez tous les __TODO__ ainsi que les erreurs affichées pendant l'exécution.
+
+## Tâche 2 : Couleurs et images
+
+Allez dans la fonction `task_2_images(...)` et corrigez tous les __TODO__ ainsi que les erreurs affichées pendant l'exécution.
+
+L'image correspondant à l'interpolation bilinéaire que vous devez obtenir est la suivante :
+
+![Cette image est aussi disponible dans `scenes/devoir0/ref-bilinear.png`](../scenes/devoir0/ref-bilinear.png)
+
+L'image correspondant à la génération d'une image en noir et blanc à partir de `../scenes/devoir0/island.jpg` est la suivante :
+
+![Cette image est aussi disponible dans `scenes/devoir0/ref-luminance.png`](../scenes/devoir0/ref-luminance.png)
+
+Si vous avez des problèmes de chargement de l'image `island.jpg`, vous pouvez utiliser l'argument `-i` pour spécifier un autre chemin.
+
+## Soumettre votre devoir
+Envoyez sur Moodle une archive contenant :
+- `devoir_0.rs`
+- la trace d'exécution du devoir `devoir_0_output.txt`. Pour produire cette trace: `cargo run --release --example=devoir0 -- -l devoir_0_output.txt`.
+
+<!-- Markdeep: -->
+<style class="fallback">
+    body {
+        visibility: hidden
+    }
+</style>
+<script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script> 

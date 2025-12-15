@@ -1,0 +1,220 @@
+{
+  "camera": {
+    "transform": {
+      "from": [0, 20, 1600],
+      "at": [0, -4, 0],
+      "up": [0, 1, 0]
+    },
+    "vfov": 25,
+    "fdist": 800,
+    "resolution": [900, 400]
+  },
+  "sampler": {
+    "type": "independent",
+    "samples": 128
+  },
+  "background": [0, 0, 0],
+  "accelerator": {
+    "type": "bvh"
+  },
+  "materials": [
+    {
+      "type": "diffuse",
+      "name": "white",
+      "albedo": [0.73, 0.73, 0.73]
+    },
+    {
+      "type": "diffuse",
+      "name": "red",
+      "albedo": [0.65, 0.05, 0.05]
+    },
+    {
+      "type": "diffuse",
+      "name": "green",
+      "albedo": [0.12, 0.45, 0.15]
+    },
+    {
+      "type": "diffuse_light",
+      "name": "light",
+      "radiance": [1.0, 1.0, 1.0]
+    },
+    {
+      "type": "phong",
+      "model": "blinn",
+      "name": "glossy0",
+      "exponent": 1.0,
+      "kd": [0.1, 0.1, 0.2],
+      "ks": [0.1, 0.1, 0.8]
+    },
+    {
+      "type": "phong",
+      "model": "blinn",
+      "name": "glossy1",
+      "exponent": 4.0,
+      "kd": [0.1, 0.1, 0.2],
+      "ks": [0.1, 0.1, 0.8]
+    },
+    {
+      "type": "phong",
+      "model": "blinn",
+      "name": "glossy2",
+      "exponent": 30.0,
+      "kd": [0.1, 0.1, 0.2],
+      "ks": [0.1, 0.1, 0.8]
+    },
+    {
+      "type": "phong",
+      "model": "blinn",
+      "name": "glossy3",
+      "exponent": 60.0,
+      "kd": [0.1, 0.1, 0.2],
+      "ks": [0.1, 0.1, 0.8]
+    },
+    {
+      "type": "phong",
+      "model": "blinn",
+      "name": "glossy4",
+      "exponent": 90.0,
+      "kd": [0.1, 0.1, 0.2],
+      "ks": [0.1, 0.1, 0.8]
+    },
+    {
+      "type": "phong",
+      "model": "blinn",
+      "name": "glossy5",
+      "exponent": 300.0,
+      "kd": [0.1, 0.1, 0.2],
+      "ks": [0.1, 0.1, 0.8]
+    }
+  ],
+  "shapes": [
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "translate": [0, 0, -277.5]
+        }
+      ],
+      "size": [1300, 555],
+      "material": "white"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": 90
+        },
+        {
+          "translate": [0, 277.5, 0]
+        }
+      ],
+      "size": [1300, 2555],
+      "material": "white"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": -90
+        },
+        {
+          "translate": [0, -277.5, 0]
+        }
+      ],
+      "size": [1300, 2555],
+      "material": "white"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [0, 1, 0],
+          "angle": 90
+        },
+        {
+          "translate": [-650, 0, 0]
+        }
+      ],
+      "size": [2555, 2555],
+      "material": "green"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [0, 1, 0],
+          "angle": -90
+        },
+        {
+          "translate": [650, 0, 0]
+        }
+      ],
+      "size": [2555, 2555],
+      "material": "red"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": 90
+        },
+        {
+          "translate": [0, 277, 0]
+        }
+      ],
+      "size": [1000, 500],
+      "material": "light"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [-500, -177.5, -200]
+      },
+      "radius": 100,
+      "material": "glossy5"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [-300, -177.5, -120]
+      },
+      "radius": 100,
+      "material": "glossy4"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [-100, -177.5, -40]
+      },
+      "radius": 100,
+      "material": "glossy3"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [100, -177.5, 40]
+      },
+      "radius": 100,
+      "material": "glossy2"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [300, -177.5, 120]
+      },
+      "radius": 100,
+      "material": "glossy1"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [500, -177.5, 200]
+      },
+      "radius": 100,
+      "material": "glossy0"
+    }
+  ]
+}

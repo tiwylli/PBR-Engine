@@ -1,0 +1,169 @@
+[
+  {
+    "name": "menger_sponge_4iter_192",
+    "shape": {
+      "type": "sdf_menger_sponge",
+      "half_size": 1.0,
+      "iterations": 4
+    },
+    "bounds": [
+      [-1.5, 1.5],
+      [-1.5, 1.5],
+      [-1.5, 1.5]
+    ],
+    "resolution": 128
+  },
+  {
+    "name": "fbm_noise_sphere_simplex_128",
+    "shape": {
+      "type": "sdf_fbm_noise_sphere",
+      "radius": 2.0,
+      "offset": [0.5, 0.5, 0.5],
+      "octaves": 6,
+      "frequency": 2.0,
+      "gain": 0.55,
+      "blend": 0.15,
+      "noise_variant": "simplex"
+    },
+    "bounds": [
+      [-3, 3],
+      [-3, 3],
+      [-3, 3]
+    ],
+    "resolution": 128
+  },
+  {
+    "name": "fbm_noise_sphere_lattice_128",
+    "shape": {
+      "type": "sdf_fbm_noise_sphere",
+      "radius": 2.0,
+      "offset": [0.5, 0.5, 0.5],
+      "octaves": 6,
+      "frequency": 2.0,
+      "gain": 0.55,
+      "blend": 0.15,
+      "noise_variant": "lattice"
+    },
+    "bounds": [
+      [-3, 3],
+      [-3, 3],
+      [-3, 3]
+    ],
+    "resolution": 128
+  },
+
+  {
+    "name": "fbm_simplex_thin_128",
+    "shape": {
+      "type": "sdf_fbm_noise",
+      "noise_variant": "simplex",
+      "half_extent": [1.0, 1.0, 0.15],
+      "corner_radius": 0.025,
+      "octaves": 8,
+      "frequency": 2.8,
+      "gain": 0.6,
+      "blend": 0.24
+    },
+    "resolution": 128
+  },
+  {
+    "name": "fbm_lattice_thin_128",
+    "shape": {
+      "type": "sdf_fbm_noise",
+      "noise_variant": "lattice",
+      "half_extent": [1.0, 1.0, 0.15],
+      "corner_radius": 0.025,
+      "octaves": 8,
+      "frequency": 2.8,
+      "gain": 0.6,
+      "blend": 0.24
+    },
+    "resolution": 128
+  },
+  {
+    "name": "mandelbulb_p8_128",
+    "shape": {
+      "type": "sdf_mandelbulb",
+      "power": 8,
+      "max_iterations": 14,
+      "bailout": 8
+    },
+    "resolution": 128
+  },
+  {
+    "name": "mandelbulb_p6_128",
+    "shape": {
+      "type": "sdf_mandelbulb",
+      "power": 6,
+      "max_iterations": 16,
+      "bailout": 8
+    },
+    "resolution": 128
+  },
+  {
+    "name": "mandelbulb_p10_96",
+    "shape": {
+      "type": "sdf_mandelbulb",
+      "power": 10,
+      "max_iterations": 14,
+      "bailout": 10
+    },
+    "resolution": 96
+  },
+  {
+    "name": "julia_c1_128",
+    "shape": {
+      "type": "sdf_julia",
+      "constant": [0.2, -0.5, 0.35],
+      "max_iterations": 18,
+      "bailout": 8
+    },
+    "resolution": 128
+  },
+  {
+    "name": "julia_c2_112",
+    "shape": {
+      "type": "sdf_julia",
+      "constant": [-0.4, 0.6, 0.1],
+      "max_iterations": 18,
+      "bailout": 8
+    },
+    "resolution": 112
+  },
+  {
+    "name": "julia_c3_96",
+    "shape": {
+      "type": "sdf_julia",
+      "constant": [0.05, 0.35, 0.55],
+      "max_iterations": 16,
+      "bailout": 7
+    },
+    "resolution": 96
+  },
+  {
+    "name": "fbm_simplex_112",
+    "shape": {
+      "type": "sdf_fbm_noise",
+      "noise_variant": "simplex",
+      "octaves": 6,
+      "frequency": 2.0,
+      "gain": 0.55,
+      "blend": 0.18,
+      "corner_radius": 0.12
+    },
+    "resolution": 112
+  },
+  {
+    "name": "fbm_lattice_96",
+    "shape": {
+      "type": "sdf_fbm_noise",
+      "noise_variant": "lattice",
+      "octaves": 5,
+      "frequency": 1.6,
+      "gain": 0.6,
+      "blend": 0.1,
+      "corner_radius": 0.1
+    },
+    "resolution": 96
+  }
+]

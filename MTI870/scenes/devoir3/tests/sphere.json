@@ -1,0 +1,14 @@
+{
+  "shapes": [
+    {
+      "type": "sphere",
+      "radius": 2.0,
+      "transform": [
+        {
+          "translate": [0.0, -3.0, 3.0]
+        }
+      ],
+      "use_sphere_solid_angle_sampling": true
+    }
+  ]
+}

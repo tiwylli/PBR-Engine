@@ -1,0 +1,127 @@
+{
+  "integrator": {
+    "max_depth" : 16,
+    "type": "path"
+  },
+  "camera": {
+    "transform": {
+      "o": [ 0, 0, -4 ],
+      "z": [ 0, 0, -1 ]
+    },
+    "vfov": 45,
+    "resolution": [ 320, 240 ]
+  },
+  "background": [
+    1,
+    1,
+    1
+  ],
+  "sampler": {
+    "type": "independent",
+    "samples": 1
+  },
+  "accelerator": {
+    "type": "linear",
+    "builder": "median"
+  },
+  "materials": [
+    {
+      "name": "glass",
+      "type": "dielectric"
+    },
+    {
+      "name": "redish",
+      "type": "diffuse",
+      "albedo": [ 0.8, 0.4, 0.4 ]
+    },
+    {
+      "name": "mat_plane",
+      "type": "diffuse",
+      "albedo": [ 0.75, 0.75, 0.75 ]
+    },
+    {
+      "name": "metal",
+      "type": "metal",
+      "ks": [ 0.75, 0.75, 0.75 ],
+      "roughness": 0.2
+    }
+  ],
+  "shapes": [
+    {
+      "type": "mesh",
+      "filename": "../assets/teapot.obj",
+      "material": "glass",
+      "transform": [
+        {
+          "scale": 0.02
+        },
+        {
+          "axis": [ 0, 1, 0 ],
+          "angle": 0.0
+        },
+        { "translate": [ 0.0, -1.0, 0 ] }
+      ]
+    },
+    {
+      "type": "mesh",
+      "filename": "../assets/teapot.obj",
+      "material": "redish",
+      "transform": [
+        {
+          "scale": 0.02
+        },
+        {
+          "axis": [ 0, 1, 0 ],
+          "angle": -200
+        },
+        {
+          "axis": [ 0, 0, 1 ],
+          "angle": -20
+        },
+        { "translate": [ 1.4, 0.0, 1.4 ] }
+      ]
+    },
+    {
+      "type": "mesh",
+      "filename": "../assets/teapot.obj",
+      "material": "metal",
+      "transform": [
+        {
+          "scale": 0.02
+        },
+        {
+          "axis": [ 0, 1, 0 ],
+          "angle": 40
+        },
+        {
+          "axis": [ 0, 0, 1 ],
+          "angle": -20
+        },
+        { "translate": [ -1.6, 0.0, 1.4 ] }
+      ]
+    },
+    {
+      "type": "quad",
+      "transform": {
+        "o": [
+          0,
+          -1,
+          0
+        ],
+        "x": [
+          1,
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0,
+          -1
+        ],
+        "z": [ 0, 1, 0 ]
+      },
+      "size": 100,
+      "material": "mat_plane"
+    }
+  ]
+}

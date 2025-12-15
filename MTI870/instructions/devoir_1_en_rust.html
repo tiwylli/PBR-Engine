@@ -1,0 +1,349 @@
+<meta charset="utf-8" emacsmode="-*- markdown -*-">
+<title>SDE885 - Devoir 1 - Ray Tracing (Rust) - Version 1.04</title>
+**SDE885 - Devoir 1 - Version 1.04 (Rust)**
+
+# Assignment Objectives
+- Implement transformations using homogeneous coordinates
+- Implement ray generation for a perspective camera
+- Implement sphere-ray intersections, with or without transformations
+- Implement ideal materials (diffuse, specular reflection and refraction) as well as a diffuse light source
+
+This assignment is largely based on Peter Shirley's first book ["Ray Tracing in One Weekend"](https://raytracing.github.io/books/RayTracingInOneWeekend.html). It also covers some concepts from [the following book](https://raytracing.github.io/books/RayTracingTheNextWeek.html). You may use Peter Shirley's books as references to obtain additional information for this assignment, in addition to the lecture slides.
+
+!!! WARN: Attention
+    **There are differences between the formulations covered in class and those presented in Peter Shirley's books.** 
+    
+    For example, some vectors may have different orientations, or certain operations may be performed in world space (instead of local space, as seen in class).
+    
+    **During implementation, please follow the formulation covered in class.** It is more general and will be used in the following assignments. 
+
+    Finally, some references to this book may be broken (e.g., links to specific chapters that have been moved in the latest edition). In this case, try to find the corresponding chapter.
+
+!!! WARN: Translation
+    This assignment has been translated from French to English. If some instructions seem unclear, please contact me (e.g., on Discord). 
+
+    The comments inside the original code files (C++ or Rust) are in French. You can use an online translator if needed. For example, use "Comment Translate" plugin in VS Code (extension that you need to install).
+
+# Retrieving the Starter Code 
+
+## Case 1: Completed Assignment 0
+
+First, **please commit all your changes and *push* them to Github. This ensures you will not lose your work in case of mistakes or overwrites.**
+
+Then, extract the archive and overwrite the files by copying its contents into the project root. Note that if you made changes outside of Assignment 0, those changes will be lost. If you wish, you can manually reintroduce them. 
+
+!!! INFO: Help
+    Do not hesitate to ask for help if needed.
+
+## Case 2: Starting Directly with Assignment 1
+
+These instructions apply to students who have not completed Assignment 0.  
+To retrieve the code for Assignment 1 and configure your development environment, refer to the instructions for Assignment 0 (the first two parts). 
+
+!!! WARN: Attention
+    **If you already joined the Github Classroom for Assignment 0**, follow the instructions described in Case 1. 
+
+**Do not hesitate to contact me (e.g., on Discord) if you have any questions.**
+
+# Assignment (100 pts)
+For this assignment, you will primarily modify the file `examples/devoir_1.rs`.
+
+Some tasks will also require you to modify other files. These files will be explicitly indicated in the task instructions or in code comments. 
+
+!!! INFO: Tip  
+    To avoid an overflow of error messages, you can comment out the calls to the different task-related functions inside the `main` function of Assignment 1. Then, enable each task one by one by uncommenting the code.
+
+## Task 1: Ray Generation (10 pts)
+
+For this task, you must modify the function `task1_rays()` defined in `devoir_1`.  
+You will implement a perspective camera in local (canonical) space, as discussed in class.  
+Detailed instructions for this task are provided directly in comments inside the function to be modified.  
+
+The reference image you should obtain is available at `scenes/devoir1/ref-task1_rays.png`. Check that your result matches this image.
+
+!!! WARN: Attention  
+    If the image is flipped or oriented incorrectly, you likely made a mistake in the parametrization of the image plane or the camera.  
+
+## Task 2: Transformations (5 pts)
+
+Implement the `TODO`s in `transform.h` (methods: point, normal, vector, and ray).  
+
+Make sure no errors occur when running the tests in `task2_transform`.  
+
+As a reminder, we use homogeneous coordinates to express and apply transformations (e.g., rotation, translation, etc.).  
+Refer to the lecture slides or PBRT [section 2.7 (Transformations)](https://www.pbr-book.org/3ed-2018/Geometry_and_Transformations/Transformations) and [section 2.8 (Applying Transformations)](https://www.pbr-book.org/3ed-2018/Geometry_and_Transformations/Applying_Transformations) if you encounter difficulties.  
+
+!!! INFO: Normalization of Normals  
+    The unit tests assume that normalization of the transformed normal is performed outside the `Transform` class (Task 2).  
+    If you choose to normalize the normal inside `Transform`, the expected vector is:  
+    `[-0.12187804332897954, 0.23575238393266212, -0.9641403196757026]`
+
+## Task 3: Improved Camera (10 pts)
+
+We will now use the code developed in Tasks 1 and 2 to define a perspective camera in 3D space.  
+You must directly modify the `CameraPerspective` class defined in `src/camera.rs`. 
+
+In particular, update the constructor (used to create the object) and the ray generation method (`generate_ray(...)`). Pay attention to the meaning of each parameter.  
+
+~~~~~~rust
+pub fn generate_ray(&self, pos_img: &Vec2, sampler: &mut dyn Sampler) -> Ray {}
+~~~~~~
+
+Here, `pos_img` is defined in the interval $[0, resolution]$. Please ignore the `sampler` parameter for now.  
+
+The `CameraPerspective` class contains several attributes. Some are read from the JSON file, while others must be properly initialized.  
+Resolve all the `TODO`s in this file and adapt the code developed in Task 1.  
+
+Your implementation will be tested in the function `task3_improved_camera` defined in `devoir_1`.  
+This function produces the image `task3_camera.png`. Check that your result matches `scenes/devoir1/ref-task3_camera.png`.  
+
+For more details, see [Chapter 12](https://raytracing.github.io/books/RayTracingInOneWeekend.html#positionablecamera) of *Ray Tracing in One Weekend*.  
+
+**Your camera implementation must not include depth of field (“Defocus Blur”, Chapter 12). This feature is left as a bonus.**
+
+## Task 4: Sphere Intersection (15 pts)
+
+In this task, you will implement the intersection of a sphere with a ray. The implementation will proceed in two steps:  
+- Intersection with a sphere without transformation (centered at $[0, 0, 0]$)  
+- Intersection with a sphere with transformations  
+
+Be careful with the ray bounds ($t_{min}$ and $t_{max}$). If an intersection occurs, update the intersection object passed as a parameter:  
+~~~~~~rust
+// Code in src/shape/mod.rs
+pub struct Intersection<'a> {
+    /// Intersection distance
+    pub t: f64,
+    /// Intersection point
+    pub p: Point3,
+    /// Surface normal
+    pub n: Vec3,
+    /// Material at the intersection point
+    pub material: &'a dyn Material,
+}
+~~~~~~
+In Rust, we need the `'a` lifetime annotation because a reference (*borrow*) is used for the material. This is for performance reasons. More info on references: https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html  
+
+The function `task4_sphere_intersection()` will let you test both variants by generating several images with intersection information. Use the reference images (in the folder `scenes/devoir1`) to validate your results.  
+
+!!! WARN: Tip  
+    Start by testing and validating the intersection with a sphere without transformations. Once you obtain the correct result, add transformation handling.  
+    An example of an intersection with transformation is available in `src/shape/quad.rs`.  
+
+## Task 5: Intersection with Multiple Primitives (5 pts)
+
+We will now implement intersection calculations with multiple primitives.  
+This is done by modifying the `ShapeGroup` object, which builds a list of objects to form a 3D scene.  
+
+To do so, modify the intersection method in `src/shapes/shape_group.rs`.  
+
+Implement the linear-cost intersection algorithm as discussed in class.  
+Do not forget to update the ray's maximum distance (`tmax`) when a closer intersection is found.  
+
+You can use the function `task5_intersection_primitives()` to test your implementation. As in the previous task, it generates several images with intersection information.  
+A specific test case of a ray starting behind the sphere and inside the sphere is also provided.  
+
+!!! WARN: Attention  
+    The Assignment 1 code was designed to isolate potential implementation errors.  
+    However, passing all the tests does not guarantee correctness in every case. For example, an incorrect intersection calculation might pass here but fail later when rendering scenes with complex materials.  
+
+## Task 6: Material Implementation (30 pts)
+
+In class, we studied several types of materials:  
+- Lambertian materials (also called diffuse), which scatter light in all directions  
+- Metallic materials, which, when perfectly smooth (`roughness = 0.0`), reflect light in a single direction  
+- Dielectric materials (e.g., glass), which can either reflect or refract light  
+
+In this task, you must implement these materials. You may refer to the corresponding chapters in *Ray Tracing in One Weekend*.  
+
+!!! WARN: Attention  
+    Peter Shirley's book expresses directions in world space.  
+    Here, we use **the material's local space** to compute scattering.  
+
+    This means that the direction passed to `sample(...)` is already expressed in local space. Thus, `wo.z` corresponds to:  
+    $$
+    \cos(\theta) = \langle \omega_o, n \rangle = \langle \omega_o, [0,0,1] \rangle = \omega_o.z
+    $$  
+    (this is true only if $\omega_o$ is normalized).  
+
+If no valid sample can be generated (e.g., the direction is below the surface), simply return:  
+~~~~~~rust
+return None;
+~~~~~~
+
+If a sample is successfully generated, you can return it like this:  
+~~~~~~rust
+return Some(SampledDirection {
+    weight: couleur, //< Color change due to the material
+    wi,            //< Outgoing direction (local coordinates)
+});
+~~~~~~
+
+To test your implementation, use the function `task6_materiaux()`.  
+Test directions are generated in spherical coordinates to make it easier to understand the orientation of `wo`.  
+
+!!! WARN: Attention  
+    Incoming and outgoing directions must be **normalized**.  
+    Otherwise, the formulas (e.g., for dielectric materials) will not work correctly.  
+
+### Lambertian (5 pts)
+
+Implement this material in `src/materials/diffuse.rs`.  
+
+- Do not return a sample if `wo.z < 0` (ray coming from below the surface).  
+- Otherwise, use the method discussed in class.  
+- You may use `random_in_unit_sphere()` to generate a sample inside a sphere using *reject sampling*.  
+
+See also [Chapter 9.1](https://raytracing.github.io/books/RayTracingInOneWeekend.html#diffusematerials/asimplediffusematerial) and [Chapter 9.4](https://raytracing.github.io/books/RayTracingInOneWeekend.html#diffusematerials/truelambertianreflection).  
+Note: in local space, the surface normal is $z$ ($[0, 0, 1]$).  
+
+The returned color must equal the material's albedo.  
+
+### Metal (10 pts)
+
+Implement this material in `src/materials/metal.rs`.  
+
+- Do not return a sample if `wo.z < 0`.  
+- For a perfectly smooth surface (`roughness = 0.0`), use the reflection formula discussed in class.  
+- For rough surfaces (`roughness > 0.0`), use the method described in [Chapter 9.6](https://raytracing.github.io/books/RayTracingInOneWeekend.html#metal/fuzzyreflection), perturbing the reflected direction.  
+
+Warning: if the new direction is below the surface (`wi.z < 0`), return `None`.  
+
+### Dielectric (15 pts)
+
+!!! WARN: Attention  
+    Unlike other materials, dielectrics allow incoming directions below the surface (`wo.z < 0`).  
+    In this case, the ray originates from inside the object.  
+    Be careful with the handling of refractive indices (`eta_int` and `eta_ext`) as well as the orientation of the normal.  
+
+    Refer to the lecture slides for more details.  
+
+Implement this material in `src/materials/dielectric.rs`.  
+
+- For Fresnel computations, use Schlick's approximation (see class).  
+- Reference: [Chapter 11](https://raytracing.github.io/books/RayTracingInOneWeekend.html#dielectrics) of *Ray Tracing in One Weekend*.  
+
+Make sure your formulas are correct for both cases (above or below the surface). In some situations, you may need to flip vector directions.  
+
+!!! WARN: Random Number Generation  
+    To generate a random number, use `sampler.next()`.  
+    The reflection/refraction decision must depend on this number **only if $\sin(\theta) < 1.0$**.  
+    If you generate a random number every time (even when $\sin(\theta) \geq 1.0$), your implementation will fail tests even though the formulas are correct.  
+
+## Task 7: Recursion (15 pts)
+
+Complete all the `TODO`s in `task7_recursive_raytracing()` and `trace(...)` in `devoir_1`.  
+
+To perform transformations between local space and world space during material sampling, you can use the `Frame` class defined in `src/vec.rs`.  
+It allows you to transform **directions only**. Example:  
+~~~~~~rust
+// build a frame using the surface normal
+// this normal is defined in world space
+let frame = Frame(normal);
+
+// transform a direction from world space to local space
+let dir_w = -ray.d; // a ray direction is usually expressed in world space
+let dir_l = frame.to_local(dir_w);
+
+// transform a direction from local space back to world space
+let dir_w2 = frame.to_world(dir_l);
+// dir_w2 == dir_w
+~~~~~~
+
+!!! WARN: Attention  
+    Be careful with vector orientations, normalization, and which space they are expressed in (local or world).  
+
+The method `Material::sample(...)` returns an `Option<SampledDirection>`. Example usage:  
+~~~~~~rust
+if let Some(sample) = material.sample(...) {
+    // we have a sample, contained in "sample"
+    // to access the direction: sample.wi
+} else {
+    // no sample (None)
+}
+~~~~~~
+
+Check that your rendering matches `ref-task7_recursive.png`.
+
+## Task 8: Rendering All Scenes (10 pts)
+
+Complete all the `TODO`s in `src/scene.rs`. Adapt the code you wrote in Task 7.  
+
+Randomly sample within each pixel as discussed in class (box reconstruction filter).  
+
+After your implementation, you can use the `render` program (this is the English translation of these parameters):  
+~~~~~~
+Usage: render.exe [OPTIONS]
+
+Options:
+  -i, --input <INPUT>    scene file or example_scene%d [default: example_scene1]
+  -o, --output <OUTPUT>  output image [default: out.png]
+  -n, --nspp <NSPP>      number of samples [default: -1]
+  -l, --log <LOG>        log output
+  -h, --help             print help
+  -V, --version          print version
+~~~~~~
+
+The `-i` option is used to render different scenes. Several scenes are provided in `scenes/devoir1/` in JSON format.  
+You can also specify the built-in example scenes with `example_sceneN`, where `N` is an integer between 0 and 3.  
+For example:  
+~~~~~~
+cargo run --release --example=render -- -i example_scene1 -o example_scene1.png
+~~~~~~
+This command generates the image of example scene 1.  
+
+Render all provided scenes (both example and JSON). Verify that your results match the reference images (within noise tolerance).  
+To reduce noise, increase the number of samples with `-n`.  
+
+For the `06_caustic.json` scene, vary the light source size. For a given number of samples per pixel, analyze how the light size influences noise in the image. Explain intuitively why.  
+
+## Bonus Tasks (10 pts - bonus)
+
+!!! WARN: Attention  
+    Bonus points will only be awarded if all required tasks are completed.  
+    These features go beyond what was covered in class and may require significant additional work.  
+
+### Depth of Field (5 pts)
+
+Implement depth of field as described in [Chapter 13](https://raytracing.github.io/books/RayTracingInOneWeekend.html#defocusblur) of *Ray Tracing in One Weekend*.  
+Modify the method `CameraPerspective::generate_ray(...)`. You may add attributes to the `CameraPerspective` class.  
+
+The `LookAt` transformation is already computed in `Transform`. To get a frame vector:  
+~~~~~~
+let u = self.transform.vector(&Vec3::new(1.0, 0.0, 0.0));
+~~~~~~
+
+You can only test this feature after completing Task 8, using example scene 2.  
+
+### Fresnel for Metals (5 pts)
+
+Currently, no Fresnel factor is applied to metals.  
+However, metals do have a Fresnel effect. See PBRT section 8.2.1 for details on how to implement it.  
+Modify the `Metal` material class to include it, and add a boolean flag to enable or disable Fresnel.  
+
+### Environment Map (10 pts)
+
+Modify `Scene::m_background` so it supports an image in addition to a constant color.  
+Use a latitude-longitude parameterization.  
+Ensure your code remains compatible with uniform background colors.  
+
+See [PBRT 12.6](https://www.pbr-book.org/3ed-2018/Light_Sources/Infinite_Area_Lights) for more details.  
+Include a rendered image in your PDF to demonstrate your implementation.  
+Be careful with image orientation.  
+
+## Assignment Submission
+
+Create an archive containing:  
+- All files from the `devoirs` and `src` folders  
+- All images you generated (with `devoir_1` or `render`)  
+- A PDF file with your answer to the question in Task 8 (you may include multiple images).  
+
+Submit this archive on Moodle.  
+
+
+<!-- Markdeep: -->
+<style class="fallback">
+    body {
+        visibility: hidden
+    }
+</style>
+<script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script> 

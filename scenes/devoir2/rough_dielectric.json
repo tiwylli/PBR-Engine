@@ -1,0 +1,229 @@
+{
+  "camera": {
+    "transform": {
+      "from": [0, 20, 1600],
+      "at": [0, -4, 0],
+      "up": [0, 1, 0]
+    },
+    "vfov": 25,
+    "fdist": 800,
+    "resolution": [900, 400]
+  },
+  "sampler": {
+    "type": "independent",
+    "samples": 128
+  },
+  "background": [0, 0, 0],
+  "accelerator": {
+    "type": "bvh"
+  },
+  "materials": [
+    {
+      "type": "diffuse",
+      "name": "white",
+      "albedo": [0.73, 0.73, 0.73]
+    },
+    {
+      "type": "diffuse",
+      "name": "red",
+      "albedo": [0.65, 0.05, 0.05]
+    },
+    {
+      "type": "diffuse",
+      "name": "green",
+      "albedo": [0.12, 0.45, 0.15]
+    },
+    {
+      "type": "diffuse_light",
+      "name": "light",
+      "radiance": [1.0, 1.0, 1.0]
+    },
+    {
+      "type": "dielectric",
+      "eta_ext": 1.0,
+      "eta_int": 1.5,
+      "ks": [1.0, 1.0, 1.0],
+      "roughness": 0.7,
+      "name": "glass0"
+    },
+    {
+      "type": "dielectric",
+      "eta_ext": 1.0,
+      "eta_int": 1.5,
+      "ks": [1.0, 1.0, 1.0],
+      "roughness": 0.5,
+      "name": "glass1"
+    },
+    {
+      "type": "dielectric",
+      "eta_ext": 1.0,
+      "eta_int": 1.5,
+      "ks": [1.0, 1.0, 1.0],
+      "roughness": 0.2,
+      "name": "glass2"
+    },
+    {
+      "type": "dielectric",
+      "eta_ext": 1.0,
+      "eta_int": 1.5,
+      "ks": [1.0, 1.0, 1.0],
+      "roughness": 0.1,
+      "name": "glass3"
+    },
+    {
+      "type": "dielectric",
+      "eta_ext": 1.0,
+      "eta_int": 1.5,
+      "ks": [1.0, 1.0, 1.0],
+      "roughness": 0.05,
+      "name": "glass4"
+    },
+    {
+      "type": "dielectric",
+      "eta_ext": 1.0,
+      "eta_int": 1.5,
+      "ks": [1.0, 1.0, 1.0],
+      "name": "glass5"
+    }
+  ],
+  "shapes": [
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "translate": [0, 0, -277.5]
+        }
+      ],
+      "size": [1300, 555],
+      "material": "white"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": 90
+        },
+        {
+          "translate": [0, 277.5, 0]
+        }
+      ],
+      "size": [1300, 2555],
+      "material": "white"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "translate": [0, -150, -277]
+        }
+      ],
+      "size": [1300, 100],
+      "material": "red"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": -90
+        },
+        {
+          "translate": [0, -277.5, 0]
+        }
+      ],
+      "size": [1300, 2555],
+      "material": "white"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [0, 1, 0],
+          "angle": 90
+        },
+        {
+          "translate": [-650, 0, 0]
+        }
+      ],
+      "size": [2555, 2555],
+      "material": "green"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [0, 1, 0],
+          "angle": -90
+        },
+        {
+          "translate": [650, 0, 0]
+        }
+      ],
+      "size": [2555, 2555],
+      "material": "red"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": 90
+        },
+        {
+          "translate": [0, 277, 0]
+        }
+      ],
+      "size": [1000, 500],
+      "material": "light"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [-500, -177.5, -100]
+      },
+      "radius": 100,
+      "material": "glass0"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [-300, -177.5, -20]
+      },
+      "radius": 100,
+      "material": "glass1"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [-100, -177.5, 60]
+      },
+      "radius": 100,
+      "material": "glass2"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [100, -177.5, 140]
+      },
+      "radius": 100,
+      "material": "glass3"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [300, -177.5, 220]
+      },
+      "radius": 100,
+      "material": "glass4"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [500, -177.5, 300]
+      },
+      "radius": 100,
+      "material": "glass5"
+    }
+  ]
+}

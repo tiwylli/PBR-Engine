@@ -1,0 +1,61 @@
+{
+  "camera": {
+    "transform": {
+      "o": [0, 0, 4]
+    },
+    "vfov": 45,
+    "resolution": [1024, 1024]
+  },
+  "background": [1, 1, 1],
+  "sampler": {
+    "type": "independent",
+    "samples": 256
+  },
+  "materials": [
+    {
+      "name": "mat_sphere",
+      "type": "diffuse",
+      "albedo": {
+        "type": "checkerboard3d",
+        "color1": [0.8, 0.1, 0.1],
+        "color2": [0.1, 0.1, 0.8],
+        "transform": [
+          { "scale": 5 },
+          {
+            "axis": [1, 1, 0],
+            "angle": -30
+          }
+        ]
+      }
+    },
+    {
+      "name": "mat_plane",
+      "type": "diffuse",
+      "albedo": {
+        "type": "checkerboard3d"
+      }
+    }
+  ],
+  "shapes": [
+    {
+      "type": "sphere",
+      "radius": 1,
+      "material": "mat_sphere",
+      "transform": {
+        "axis": [1, 1, 0],
+        "angle": -30
+      }
+    },
+    {
+      "type": "quad",
+      "transform": {
+        "o": [0, -1, 0],
+        "x": [1, 0, 0],
+        "y": [0, 0, -1],
+        "z": [0, 1, 0]
+      },
+      "size": 100,
+      "material": "mat_plane"
+    }
+  ]
+}

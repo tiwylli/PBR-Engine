@@ -1,0 +1,162 @@
+{
+  "paths": ["../assets/"],
+  "camera": {
+    "transform": {
+      "from": [0.0, 1, -4.0],
+      "at": [0.0, 0.0, 0.0],
+      "up": [0, 1, 0]
+    },
+    "vfov": 75,
+    "fdist": 1,
+    "resolution": [1000, 1000]
+  },
+  "sampler": { "type": "independent", "samples": 64 },
+  "integrator": { "type": "path" },
+  "background": [0.05, 0.05, 0.05],
+  "materials": [
+    { "type": "diffuse", "name": "box_surface", "albedo": [0.45, 0.43, 0.4] },
+    { "type": "diffuse", "name": "dark_rocky", "albedo": [0.35, 0.25, 0.08] },
+    { "type": "diffuse", "name": "blue", "albedo": [0.1, 0.1, 0.8] },
+    {
+      "type": "diffuse",
+      "name": "floor",
+      "albedo": {
+        "type": "perlin_noise",
+        "width": 512,
+        "height": 512,
+        "frequency": 12,
+        "octaves": 6,
+        "persistence": 0.75,
+        "lacunarity": 2.0,
+        "contrast": 2.0,
+        "color1": [0.09, 0.09, 0.08],
+        "color2": [0.78, 0.74, 0.66],
+        "uv_scale": [4.0, 4.0],
+        "offset": [0.0, 0.0],
+        "seed": 1337
+      }
+    },
+    { "type": "diffuse", "name": "pebbles", "albedo": [0.8, 0.55, 0.4] },
+    { "type": "diffuse", "name": "ship_paint", "albedo": [0.85, 0.2, 0.2] },
+    { "type": "diffuse_light", "name": "light", "radiance": [15.0, 14, 13] },
+    { "type": "diffuse_light", "name": "crystal", "radiance": [1, 1, 1] }
+  ],
+  "shapes": [
+    {
+      "type": "mesh",
+      "filename": "jedi-starfighter.obj",
+      "material": "ship_paint",
+      "transform": [
+        { "scale": 0.005 },
+        { "rotation": [0, 225, 0] },
+        { "translate": [0, -0.15, 0] }
+      ]
+    },
+    {
+      "type": "quad",
+      "transform": [
+        { "axis": [1, 0, 0], "angle": -90 },
+        { "translate": [0, -1, 0] }
+      ],
+      "size": [20, 20],
+      "material": "floor"
+    }
+  ],
+  "sdf_objects": [
+    {
+      "name": "outer_cave_shell",
+      "type": "sdf_difference",
+      "material": "dark_rocky",
+      "children": [
+        {
+          "type": "sdf_sphere",
+          "radius": 6.0,
+          "bounds": {
+            "min": [-7.0, -7.0, -7.0],
+            "max": [7.0, 7.0, 7.0]
+          }
+        },
+        {
+          "type": "sdf_sphere",
+          "radius": 5.999,
+          "bounds": { "min": [-6.9, -6.9, -6.9], "max": [6.9, 6.9, 6.9] }
+        }
+      ]
+    },
+    {
+      "name": "noisy_cave_shell",
+      "type": "sdf_difference",
+      "material": "dark_rocky",
+      "settings": {
+        "max_steps": 512,
+        "hit_epsilon": 1.0e-5,
+        "normal_epsilon": 5.0e-6,
+        "step_clamp": 0.1,
+        "max_travel_distance": 20.0
+      },
+      "children": [
+        {
+          "type": "sdf_difference",
+          "settings": {
+            "max_steps": 512,
+            "hit_epsilon": 1.0e-5,
+            "normal_epsilon": 5.0e-6,
+            "step_clamp": 0.1,
+            "max_travel_distance": 20.0
+          },
+          "children": [
+            {
+              "type": "sdf_sphere",
+              "radius": 6.0,
+              "bounds": {
+                "min": [-7.0, -7.0, -7.0],
+                "max": [7.0, 7.0, 7.0]
+              }
+            },
+            {
+              "type": "sdf_fbm_noise",
+              "noise_type": "simplex",
+              "half_extent": [5.5, 5.5, 5.5],
+              "radius": 0.75,
+              "offset": [0.5, 0.5, 0.5],
+              "octaves": 5,
+              "frequency": 2.25,
+              "gain": 0.6,
+              "blend": 0.25,
+              "bounds": {
+                "min": [-7.5, -7.5, -7.5],
+                "max": [7.5, 7.5, 7.5]
+              }
+            }
+          ]
+        },
+        {
+          "type": "sdf_sphere_sine",
+          "radius": 5.0,
+          "material": "ship_paint",
+          "disp_freq_x": 8.0,
+          "disp_freq_y": 48.0,
+          "disp_freq_z": 16.0,
+          "disp_amplitude_x": 1,
+          "disp_amplitude_y": 0.5,
+          "disp_amplitude_z": 0.25,
+          "bounds": {
+            "min": [-6, -6, -6],
+            "max": [6, 6, 6]
+          }
+        }
+      ]
+    },
+    {
+      "name": "light",
+      "type": "sdf_sphere",
+      "material": "light",
+      "radius": 1.0,
+      "transform": [{ "translate": [0.0, 3.0, -1.0] }],
+      "bounds": {
+        "min": [-1.0, 2.0, -2.0],
+        "max": [1.0, 6.0, 0.0]
+      }
+    }
+  ]
+}

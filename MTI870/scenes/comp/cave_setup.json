@@ -1,0 +1,140 @@
+{
+  "paths": ["../assets/"],
+  "camera": {
+    "transform": {
+      "from": [0.0, 0.05, -0.4],
+      "at": [0.0, 0.0, 0.0],
+      "up": [0, 1, 0]
+    },
+    "vfov": 75,
+    "fdist": 1.0,
+    "resolution": [1000, 1000]
+  },
+  "sampler": {
+    "type": "independent",
+    "samples": 64
+  },
+  "integrator": {
+    "type": "path"
+  },
+  "background": [0.1, 0.1, 0.1],
+  "materials": [
+    { "type": "diffuse", "name": "ground", "albedo": [0.5, 0.5, 0.5] },
+    {
+      "type": "metal",
+      "name": "sdf_mirror",
+      "roughness": 0.05,
+      "ks": [0.9, 0.95, 1.0]
+    },
+    { "type": "diffuse", "name": "red", "albedo": [0.8, 0.1, 0.1] },
+    { "type": "diffuse", "name": "green", "albedo": [0.1, 0.8, 0.1] },
+    { "type": "diffuse", "name": "blue", "albedo": [0.1, 0.1, 0.8] },
+    { "type": "diffuse_light", "name": "light", "radiance": [15.0, 14.0, 13.0] }
+  ],
+  "shapes": [
+    {
+      "type": "mesh",
+      "filename": "jedi_starfighter.obj",
+      "material": "red",
+      "transform": [
+        {
+          "scale": 0.001
+        },
+        {
+          "translate": [0.0, -1.5, 0.0]
+        },
+        {
+          "rotation": [0, 225, 0]
+        }
+      ]
+    }
+  ],
+  "sdf_objects": [
+    {
+      "name": "cave_sphere_mirror",
+      "type": "sdf_difference",
+      "material": "sdf_mirror",
+      "normal": [0, -1, 0],
+      "children": [
+        {
+          "type": "sdf_sphere",
+          "radius": 1.0,
+          "bounds": { "min": [-1.0, -1.0, -1.0], "max": [1.0, 1.0, 1.0] }
+        },
+        {
+          "type": "sdf_sphere",
+          "radius": 0.98,
+          "bounds": { "min": [-1.0, -1.0, -1.0], "max": [1.0, 1.0, 1.0] }
+        }
+      ]
+    },
+    {
+      "name": "sphere_cut_intersect_fractal",
+      "type": "sdf_difference",
+      "material": "green",
+      "children": [
+        {
+          "type": "sdf_sphere",
+          "radius": 0.95,
+          "bounds": { "min": [-1.0, -1.0, -1.0], "max": [1.0, 1.0, 1.0] }
+        },
+        {
+          "name": "sphere_intersect_fractal",
+          "type": "sdf_intersection",
+          "material": "green",
+          "children": [
+            {
+              "type": "sdf_sphere",
+              "material": "green",
+              "radius": 0.8,
+              "bounds": { "min": [-1.0, -1.0, -1.0], "max": [1.0, 1.0, 1.0] }
+            },
+            {
+              "name": "origin_bulb",
+              "type": "sdf_mandelbulb",
+              "material": "red",
+              "power": 8.0,
+              "max_iterations": 14,
+              "solid_radius": 0.7,
+              "transform": [{ "scale": [0.75, 0.75, 0.75] }],
+              "bounds": { "min": [-1.0, -1.0, -1.0], "max": [1.0, 1.0, 1.0] }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "light_source",
+      "type": "sdf_sphere",
+      "material": "light",
+      "radius": 0.025,
+      "transform": [{ "translate": [0.1, 0.0, 0.0] }],
+      "bounds": { "min": [0.05, -0.075, -0.075], "max": [0.15, 0.075, 0.075] }
+    },
+    {
+      "name": "light_source",
+      "type": "sdf_sphere",
+      "material": "light",
+      "radius": 0.05,
+      "transform": [{ "translate": [0.1, 0.15, -0.35] }],
+      "bounds": { "min": [0.05, 0.05, -0.45], "max": [0.15, 0.25, -0.25] }
+    },
+    {
+      "name": "greensphere",
+      "type": "sdf_sphere",
+      "material": "green",
+      "radius": 0.05,
+      "transform": [{ "translate": [-0.075, -0.15, -0.15] }],
+      "bounds": { "min": [-0.15, -0.25, -0.25], "max": [0.0, -0.05, -0.05] }
+    },
+    {
+      "name": "ground_plane",
+      "type": "sdf_plane",
+      "material": "ground",
+      "normal": [0, 1, 0],
+      "offset": 0,
+      "transform": [{ "translate": [0.0, -0.15, 0.0] }],
+      "bounds": { "min": [-1.0, -0.155, -1.0], "max": [1.0, -0.05, 1.0] }
+    }
+  ]
+}

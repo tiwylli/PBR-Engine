@@ -1,0 +1,30 @@
+{
+  "material": {
+    "type": "blend",
+    "alpha": 0.7,
+    "matA": {
+      "type": "diffuse",
+      "color": [0.0, 0.0, 1.0]
+    },
+    "matB": {
+      "type": "metal",
+      "roughness": 0.3
+    }
+  },
+  "directions": [
+    {
+      "name": "z",
+      "wo": [0.0, 0.0, 1.0]
+    },
+    {
+      "name": "45-degree",
+      "theta": 45.0,
+      "phi": 0.1
+    },
+    {
+      "name": "87-degree",
+      "theta": 87.0,
+      "phi": 0.1
+    }
+  ]
+}

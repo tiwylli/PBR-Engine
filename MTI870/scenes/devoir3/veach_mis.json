@@ -1,0 +1,141 @@
+{
+  "camera": {
+    "transform": {
+      "from": [0, 6, 27.5],
+      "at": [0, -1.5, 2.5],
+      "up": [0, 1, 0]
+    },
+    "vfov": 16,
+    "fdist": 800,
+    "resolution": [768, 512]
+  },
+  "sampler": {
+    "type": "independent",
+    "samples": 32
+  },
+  "background": [0.0, 0.0, 0.0],
+  "accelerator": {
+    "type": "bvh"
+  },
+  "integrator": {
+    "type": "direct"
+  },
+  "materials": [
+    {
+      "name": "light1",
+      "type": "diffuse_light",
+      "radiance": [901.803, 901.803, 901.803]
+    },
+    {
+      "name": "light2",
+      "type": "diffuse_light",
+      "radiance": [100, 100, 100]
+    },
+    {
+      "name": "light3",
+      "type": "diffuse_light",
+      "radiance": [11.1111, 11.1111, 11.1111]
+    },
+    {
+      "name": "light4",
+      "type": "diffuse_light",
+      "radiance": [1.23457, 1.23457, 1.23457]
+    },
+    {
+      "name": "wall",
+      "type": "diffuse",
+      "albedo": [0.2, 0.2, 0.2]
+    },
+    {
+      "name": "phong1",
+      "type": "metal",
+      "ks": 0.2,
+      "roughness": 0.004
+    },
+    {
+      "name": "phong2",
+      "type": "metal",
+      "ks": 0.2,
+      "roughness": 0.02
+    },
+    {
+      "name": "phong3",
+      "type": "metal",
+      "ks": 0.2,
+      "roughness": 0.07
+    },
+    {
+      "name": "phong4",
+      "type": "metal",
+      "ks": 0.2,
+      "roughness": 0.14
+    }
+  ],
+  "shapes": [
+    {
+      "type": "sphere",
+      "material": "light1",
+      "radius": 0.033,
+      "transform": [
+        {
+          "translate": [3.75, 0, 0]
+        }
+      ]
+    },
+    {
+      "type": "sphere",
+      "material": "light2",
+      "radius": 0.1,
+      "transform": [
+        {
+          "translate": [1.25, 0, 0]
+        }
+      ]
+    },
+    {
+      "type": "sphere",
+      "material": "light3",
+      "radius": 0.3,
+      "transform": [
+        {
+          "translate": [-1.25, 0, 0]
+        }
+      ]
+    },
+    {
+      "type": "sphere",
+      "material": "light4",
+      "radius": 0.9,
+      "transform": [
+        {
+          "translate": [-3.75, 0, 0]
+        }
+      ]
+    },
+    {
+      "type": "mesh",
+      "filename": "../assets/veach/plate1.obj",
+      "material": "phong1"
+    },
+    {
+      "type": "mesh",
+      "filename": "../assets/veach/plate2.obj",
+      "material": "phong2"
+    },
+    {
+      "type": "mesh",
+      "filename": "../assets/veach/plate3.obj",
+      "material": "phong3"
+    },
+    {
+      "type": "mesh",
+      "filename": "../assets/veach/plate4.obj",
+      "material": "phong4"
+    },
+    {
+      "type": "mesh",
+      "filename": "../assets/veach/floor.obj",
+      "material": "wall"
+    }
+  ]
+}

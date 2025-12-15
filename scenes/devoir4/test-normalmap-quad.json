@@ -1,0 +1,80 @@
+{
+  "paths": ["../assets"],
+  "camera": {
+    "transform": {
+      "o": [0, 0, 4]
+    },
+    "vfov": 45,
+    "resolution": [1024, 1024]
+  },
+  "background": [0, 0, 0],
+  "sampler": {
+    "type": "independent",
+    "samples": 256
+  },
+  "materials": [
+    {
+      "name": "mat_sphere",
+      "type": "diffuse",
+      "albedo": {
+        "type": "texture",
+        "filename": "medieval_red_brick_1k/textures/medieval_red_brick_diff_1k.png",
+        "uv_scale": [1.5, 1]
+      },
+      "normal_map": {
+        "type": "texture",
+        "filename": "medieval_red_brick_1k/textures/medieval_red_brick_nor_gl_1k.png",
+        "gamma": false,
+        "uv_scale": [1.5, 1]
+      }
+    },
+    {
+      "name": "mat_plane",
+      "type": "diffuse",
+      "albedo": {
+        "type": "checkerboard2d",
+        "uv_scale": [100, 100],
+        "uv_offset": [5, 5]
+      }
+    },
+    {
+      "type": "diffuse_light",
+      "name": "light",
+      "radiance": [2.0, 1.5, 1.5]
+    }
+  ],
+  "shapes": [
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": -70
+        },
+        {
+          "axis": [0, 0, 1],
+          "angle": 30
+        },
+        {
+          "translate": [0, 0, -5]
+        }
+      ],
+      "size": 10,
+      "material": "mat_sphere"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": 90
+        },
+        {
+          "translate": [0, 2, 0]
+        }
+      ],
+      "size": [10, 5],
+      "material": "light"
+    }
+  ]
+}

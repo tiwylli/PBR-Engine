@@ -1,0 +1,175 @@
+{
+  "integrator": {
+    "type": "path"
+  },
+  "sampler": {
+    "type": "independent",
+    "samples": 256
+  },
+  "materials": [
+    {
+      "type": "diffuse",
+      "name": "white",
+      "albedo": [0.73, 0.73, 0.73]
+    },
+    {
+      "type": "diffuse",
+      "name": "red",
+      "albedo": [0.65, 0.05, 0.05]
+    },
+    {
+      "type": "diffuse",
+      "name": "green",
+      "albedo": [0.12, 0.45, 0.15]
+    },
+    {
+      "type": "diffuse_light",
+      "name": "light",
+      "radiance": 16.0
+    },
+    {
+      "name": "ShortBox",
+      "albedo": [0.725, 0.71, 0.68],
+      "type": "diffuse"
+    },
+    {
+      "name": "TallBox",
+      "albedo": [0.725, 0.71, 0.68],
+      "type": "diffuse"
+    },
+    {
+      "name": "Light",
+      "type": "diffuse_light",
+      "radiance": [17, 12, 4]
+    }
+  ],
+  "shapes": [
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "translate": [0, 0, -650]
+        }
+      ],
+      "size": [1300, 1300],
+      "material": "white"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": 90
+        },
+        {
+          "translate": [0, 650, 0]
+        }
+      ],
+      "size": [1300, 1300],
+      "material": "white"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": -90
+        },
+        {
+          "translate": [0, -650, 0]
+        }
+      ],
+      "size": [1300, 1300],
+      "material": "white"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [0, 1, 0],
+          "angle": 90
+        },
+        {
+          "translate": [-650, 0, 0]
+        }
+      ],
+      "size": [1300, 1300],
+      "material": "green"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [0, 1, 0],
+          "angle": -90
+        },
+        {
+          "translate": [650, 0, 0]
+        }
+      ],
+      "size": [1300, 1300],
+      "material": "red"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": 90
+        },
+        {
+          "translate": [0, 640, 0]
+        }
+      ],
+      "size": [300, 300],
+      "material": "light"
+    },
+    {
+      "transform": [
+        {
+          "scale": [59.4811, 60.4394, 60]
+        },
+        {
+          "scale": 3.0
+        },
+        {
+          "rotation": [90, 90, -153.36]
+        },
+        {
+          "o": [300, -470, 0]
+        }
+      ],
+      "filename": "../assets/cube.obj",
+      "type": "mesh",
+      "material": "ShortBox"
+    },
+    {
+      "transform": [
+        {
+          "scale": [60.7289, 59.7739, 120]
+        },
+        {
+          "scale": 3.5
+        },
+        {
+          "rotation": [90, 180, 160.812]
+        },
+        {
+          "o": [-200, -300, -300]
+        }
+      ],
+      "filename": "../assets/cube.obj",
+      "type": "mesh",
+      "material": "TallBox"
+    }
+  ],
+  "camera": {
+    "transform": {
+      "from": [0, 20, 3000],
+      "at": [0, -4, 0],
+      "up": [0, 1, 0]
+    },
+    "vfov": 28,
+    "resolution": [512, 512]
+  }
+}

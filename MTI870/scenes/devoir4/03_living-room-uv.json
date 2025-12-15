@@ -1,0 +1,739 @@
+{
+  "paths": [
+    "../assets/living-room"
+  ],
+  "accelerator": {
+    "type": "bvh",
+    "builder" :  "sah"
+  },
+  "integrator" : {
+    "type" : "uv"
+},
+    "materials": [
+        {
+            "name": "Dirt",
+            "albedo": [
+                0.09850399941205978,
+                0.04596799984574318,
+                0.03588699921965599
+            ],
+            "type": "diffuse"
+        },
+        {
+            "name": "Floor",
+            "albedo": [1.0, 1.0, 1.0],
+            "type": "diffuse"
+        },
+        {
+            "name": "TableWood",
+            "albedo":  [1.0, 1.0, 1.0],
+            "type": "diffuse"
+        },
+        {
+            "name": "Sofa",
+            "albedo": 1.0,
+            "type": "diffuse"
+        },
+        {
+            "name": "SofaLegs",
+            "albedo": 0.1,
+            "type": "diffuse"
+        },
+        {
+            "name": "Walls",
+            "albedo": 0.1,
+            "type": "diffuse"
+        },
+        {
+            "name": "Paneling",
+            "albedo": 0.8,
+            "type": "diffuse"
+        },
+        {
+            "name": "Mirror",
+            "ks": 0.578596,
+            "type": "metal"
+        },
+        {
+            "name": "BrushedStainlessSteel",
+            "albedo": 0.578596,
+            "type": "metal",
+            "roughness": 0.02
+        },
+        {
+            "name": "MattePaint",
+            "albedo": 0.578596,
+            "type": "diffuse"
+        },
+        {
+            "name": "Painting",
+            "albedo":  [1.0, 1.0, 1.0],
+            "type": "diffuse"
+        },
+        {
+            "name": "PaintingBack",
+            "albedo": [
+                0.25999999046325684,
+                0.25,
+                0.14000000059604645
+            ],
+            "type": "diffuse"
+        },
+        {
+            "name": "Glass",
+            "ks": 1.0,
+            "type": "dielectric"
+        },
+        {
+            "name": "PlantPot",
+            "albedo": 0.1,
+            "type": "diffuse"
+        },
+        {
+            "name": "FireplaceGlass",
+            "ks": 0.1,
+            "type": "metal"
+        },
+        {
+            "name": "Transluscent",
+            "albedo": 0.9,
+            "type": "diffuse"
+        },
+        {
+            "name": "Branches",
+            "albedo": [
+                0.160443514585495,
+                0.08241420984268188,
+                0.019917838275432587
+            ],
+            "type": "diffuse"
+        },
+        {
+            "name": "BottleCap",
+            "albedo": [
+                0.4562634229660034,
+                0.0,
+                0.0
+            ],
+            "type": "diffuse"
+        }
+    ],
+    "shapes": [
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh038.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh036.obj",
+            "material": "Transluscent"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh035.obj",
+            "material": "MattePaint"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh041.obj",
+            "material": "BrushedStainlessSteel"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh040.obj",
+            "material": "Transluscent"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh028.obj",
+            "material": "MattePaint"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh022.obj",
+            "material": "BrushedStainlessSteel"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh020.obj",
+            "material": "PlantPot"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh026.obj",
+            "material": "Dirt"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh018.obj",
+            "material": "Branches"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh060.obj",
+            "material": "Branches"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh016.obj",
+            "material": "BrushedStainlessSteel"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh015.obj",
+            "material": "BrushedStainlessSteel"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh029.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh043.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh033.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh046.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh049.obj",
+            "material": "BrushedStainlessSteel"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh039.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh027.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh050.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh052.obj",
+            "material": "BrushedStainlessSteel"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh048.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh024.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh054.obj",
+            "material": "Walls"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh055.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh056.obj",
+            "material": "FireplaceGlass"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh045.obj",
+            "material": "Mirror"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh063.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh057.obj",
+            "material": "MattePaint"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh019.obj",
+            "material": "Floor"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh059.obj",
+            "material": "Walls"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh042.obj",
+            "material": "MattePaint"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh051.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh061.obj",
+            "material": "Paneling"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh047.obj",
+            "material": "Sofa"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh062.obj",
+            "material": "Sofa"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh064.obj",
+            "material": "Sofa"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh014.obj",
+            "material": "Sofa"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh013.obj",
+            "material": "Sofa"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh034.obj",
+            "material": "Sofa"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh021.obj",
+            "material": "SofaLegs"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh012.obj",
+            "material": "MattePaint"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh011.obj",
+            "material": "MattePaint"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh053.obj",
+            "material": "MattePaint"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh010.obj",
+            "material": "PlantPot"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh009.obj",
+            "material": "Dirt"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh017.obj",
+            "material": "Branches"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh008.obj",
+            "material": "Branches"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh023.obj",
+            "material": "Painting"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh006.obj",
+            "material": "MattePaint"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh005.obj",
+            "material": "PaintingBack"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": false,
+            
+            
+            "filename": "models/Mesh004.obj",
+            "material": "TableWood"
+        },
+        {
+            
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh003.obj",
+            "material": "TableWood"
+        },
+        {
+            "transform": {
+                "o": [
+                    0.634814977645874,
+                    0.0,
+                    -0.15144085884094238
+                ]
+            },
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh002.obj",
+            "material": "Glass"
+        },
+        {
+            "transform": {
+                "o": [
+                    0.634814977645874,
+                    0.0,
+                    -0.15144085884094238
+                ]
+            },
+            "type": "mesh",
+            "smooth": true,
+            "filename": "models/Mesh001.obj",
+            "material": "BottleCap"
+        },
+        {
+            "transform": {
+                "o": [
+                    0.634814977645874,
+                    0.0,
+                    -0.19560909271240234
+                ]
+            },
+            "type": "mesh",
+            "smooth": true,
+            "filename": "models/Mesh030.obj",
+            "material": "Glass"
+        },
+        {
+            "transform": {
+                "o": [
+                    0.634814977645874,
+                    0.0,
+                    -0.19560909271240234
+                ]
+            },
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh044.obj",
+            "material": "Glass"
+        },
+        {
+            "transform": {
+                "o": [
+                    0.634814977645874,
+                    0.0,
+                    -0.19560909271240234
+                ]
+            },
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh000.obj",
+            "material": "TableWood"
+        },
+        {
+            "transform": {
+                "o": [
+                    0.634814977645874,
+                    0.0,
+                    -0.19560909271240234
+                ]
+            },
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh037.obj",
+            "material": "TableWood"
+        },
+        {
+            "transform": {
+                "o": [
+                    0.634814977645874,
+                    0.0,
+                    -0.19560909271240234
+                ]
+            },
+            "type": "mesh",
+            "smooth": true,
+            
+            
+            "filename": "models/Mesh031.obj",
+            "material": "TableWood"
+        }
+    ],
+    "camera": {
+        "resolution": [
+            1280,
+            720
+        ],
+        "transform": {
+            "from": [
+                5.105184555053711,
+                1.0,
+                -2.3178906440734863
+            ],
+            "at": [
+                1.052592134475708,
+                1.3136401653289795,
+                -1.3172874450683594
+            ],
+            "up": [
+                0.0,
+                1.0,
+                0.0
+            ]
+        },
+        "vfov": 68.0
+    },
+    "background": 8.0,
+    "sampler": {
+        "type": "independent",
+        "samples": 16
+    }
+}

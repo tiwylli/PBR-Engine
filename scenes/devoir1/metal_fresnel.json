@@ -1,0 +1,65 @@
+{
+  "camera": {
+    "transform": {
+      "o": [0, 0, 8]
+    },
+    "vfov": 45,
+    "resolution": [640, 480]
+  },
+  "sampler": {
+    "type": "independent",
+    "samples": 100
+  },
+  "background": [1, 1, 1],
+  "materials": [
+    {
+      "type": "diffuse",
+      "name": "white"
+    },
+    {
+      "type": "metal",
+      "name": "metal_nofr",
+      "roughness": 0.1,
+      "ks": [1.0, 0.5, 0.5]
+    },
+    {
+      "type": "metal",
+      "name": "metal_fresnel",
+      "roughness": 0.1,
+      "use_fresnel": true,
+      "ks": [1.0, 0.5, 0.5]
+    }
+  ],
+  "shapes": [
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": -90
+        },
+        {
+          "translate": [0, -1, 0]
+        }
+      ],
+      "size": 100,
+      "material": "white"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [-2.0, 0.0, 0]
+      },
+      "radius": 1.0,
+      "material": "metal_nofr"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [2.0, 0.0, 0]
+      },
+      "radius": 1.0,
+      "material": "metal_fresnel"
+    }
+  ]
+}

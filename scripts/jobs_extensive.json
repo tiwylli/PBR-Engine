@@ -1,0 +1,88 @@
+[
+  {
+    "name": "mandelbulb_p8_512",
+    "shape": {
+      "type": "sdf_mandelbulb",
+      "power": 8,
+      "max_iterations": 18,
+      "bailout": 10
+    },
+    "resolution": 512
+  },
+  {
+    "name": "mandelbulb_p6_448",
+    "shape": {
+      "type": "sdf_mandelbulb",
+      "power": 6,
+      "max_iterations": 20,
+      "bailout": 10
+    },
+    "resolution": 448
+  },
+  {
+    "name": "mandelbulb_p10_384",
+    "shape": {
+      "type": "sdf_mandelbulb",
+      "power": 10,
+      "max_iterations": 16,
+      "bailout": 12
+    },
+    "resolution": 384
+  },
+  {
+    "name": "julia_c1_448",
+    "shape": {
+      "type": "sdf_julia",
+      "constant": [0.2, -0.5, 0.35],
+      "max_iterations": 32,
+      "bailout": 8
+    },
+    "resolution": 448
+  },
+  {
+    "name": "julia_c2_400",
+    "shape": {
+      "type": "sdf_julia",
+      "constant": [-0.4, 0.6, 0.1],
+      "max_iterations": 30,
+      "bailout": 8
+    },
+    "resolution": 400
+  },
+  {
+    "name": "julia_c3_360",
+    "shape": {
+      "type": "sdf_julia",
+      "constant": [0.05, 0.35, 0.55],
+      "max_iterations": 28,
+      "bailout": 7
+    },
+    "resolution": 360
+  },
+  {
+    "name": "fbm_simplex_dense_320",
+    "shape": {
+      "type": "sdf_fbm_noise",
+      "noise_variant": "simplex",
+      "octaves": 8,
+      "frequency": 2.2,
+      "gain": 0.55,
+      "blend": 0.2,
+      "corner_radius": 0.15
+    },
+    "resolution": 320
+  },
+  {
+    "name": "fbm_lattice_sparse_288",
+    "shape": {
+      "type": "sdf_fbm_noise",
+      "noise_variant": "lattice",
+      "octaves": 6,
+      "frequency": 1.8,
+      "gain": 0.6,
+      "blend": 0.12,
+      "corner_radius": 0.12
+    },
+    "resolution": 288
+  }
+]

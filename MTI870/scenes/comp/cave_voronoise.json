@@ -1,0 +1,124 @@
+{
+  "paths": ["../assets/"],
+  "camera": {
+    "transform": {
+      "from": [0.0, 1, -3.0],
+      "at": [0.0, 0.0, 0.0],
+      "up": [0, 1, 0]
+    },
+    "vfov": 75,
+    "fdist": 1,
+    "resolution": [1000, 1000]
+  },
+  "sampler": { "type": "independent", "samples": 64 },
+  "integrator": { "type": "path" },
+  "background": [0.05, 0.05, 0.05],
+  "materials": [
+    { "type": "diffuse", "name": "box_surface", "albedo": [0.6, 0.85, 0.75] },
+    { "type": "diffuse", "name": "green", "albedo": [0.1, 0.8, 0.1] },
+    { "type": "diffuse", "name": "floor", "albedo": [0.35, 0.35, 0.32] },
+    { "type": "diffuse", "name": "pebbles", "albedo": [0.8, 0.55, 0.4] },
+    { "type": "diffuse", "name": "ship_paint", "albedo": [0.85, 0.2, 0.2] },
+    { "type": "diffuse_light", "name": "light", "radiance": [15.0, 14, 13] }
+  ],
+  "shapes": [
+    {
+      "type": "mesh",
+      "filename": "jedi_starfighter.obj",
+      "material": "ship_paint",
+      "transform": [
+        { "scale": 0.005 },
+        { "rotation": [0, 225, 0] },
+        { "translate": [0, -0.15, 0] }
+      ]
+    }
+  ],
+  "sdf_objects": [
+    {
+      "name": "outer_cave_shell",
+      "type": "sdf_difference",
+      "material": "green",
+      "children": [
+        {
+          "type": "sdf_sphere",
+          "radius": 6.0,
+          "bounds": {
+            "min": [-7.0, -7.0, -7.0],
+            "max": [7.0, 7.0, 7.0]
+          }
+        },
+        {
+          "type": "sdf_sphere",
+          "radius": 5.99,
+          "bounds": { "min": [-6.9, -6.9, -6.9], "max": [6.9, 6.9, 6.9] }
+        }
+      ]
+    },
+    {
+      "name": "noisy_cave_shell",
+      "type": "sdf_difference",
+      "material": "box_surface",
+      "children": [
+        {
+          "type": "sdf_difference",
+          "children": [
+            {
+              "type": "sdf_sphere",
+              "radius": 6.0,
+              "bounds": {
+                "min": [-7.0, -7.0, -7.0],
+                "max": [7.0, 7.0, 7.0]
+              }
+            },
+            {
+              "type": "sdf_fbm_noise",
+              "noise_type": "simplex",
+              "half_extent": [5.5, 5.5, 5.5],
+              "radius": 0.75,
+              "offset": [0.5, 0.5, 0.5],
+              "octaves": 5,
+              "frequency": 2.25,
+              "gain": 0.6,
+              "blend": 0.25,
+              "bounds": {
+                "min": [-7.5, -7.5, -7.5],
+                "max": [7.5, 7.5, 7.5]
+              }
+            }
+          ]
+        },
+        {
+          "type": "sdf_sphere",
+          "radius": 4.0,
+          "bounds": {
+            "min": [-4.5, -4.5, -4.5],
+            "max": [4.5, 4.5, 4.5]
+          }
+        }
+      ]
+    },
+    {
+      "name": "floor_plane",
+      "type": "sdf_plane",
+      "material": "floor",
+      "normal": [0, 1, 0],
+      "offset": 0,
+      "transform": [{ "translate": [0.0, -1, 0.0] }],
+      "bounds": {
+        "min": [-8.0, -2.4, -8.0],
+        "max": [8.0, 2.4, 8.0]
+      }
+    },
+    {
+      "name": "light",
+      "type": "sdf_sphere",
+      "material": "light",
+      "radius": 1.0,
+      "transform": [{ "translate": [0.0, 3.0, -1.0] }],
+      "bounds": {
+        "min": [-1.0, 2.0, -2.0],
+        "max": [1.0, 6.0, 0.0]
+      }
+    }
+  ]
+}

@@ -1,0 +1,511 @@
+<meta charset="utf-8" emacsmode="-*- markdown -*-">
+
+<title>MTI870 - Devoir 3 - Monte Carlo II (Rust) - Version 1.05</title>
+**MTI870 - Devoir 3 - Monte Carlo II (Rust) - Version 1.05**
+
+# Objectifs du devoir
+
+- Implémenter l'intersection avec un triangle.  
+- Mettre en œuvre l'échantillonnage des sources lumineuses.  
+- Intégrer la combinaison **mixture/MIS** pour l'éclairage et l'échantillonnage des matériaux.  
+- Implémenter un algorithme de **path tracing** avec *Multiple Importance Sampling* et *next-event estimation*.
+
+# Mise à jour de votre code (archive disponible sur Moodle)
+
+Avant toute chose, **validez et poussez (`push`) vos changements sur GitHub** afin d'éviter toute perte de travail en cas de mauvaise manipulation.
+
+Comme pour le devoir 2, une pull request est disponible sur GitHub.
+
+Ajoutez ensuite la méthode suivante à la classe `Scene` si elle n'est pas déjà présente :
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub fn visible(&self, p0: &Point3, p1: &Point3) -> bool {
+    // Calcul de la direction entre p1 et p0
+    let d = p1 - p0;
+    let dist = d.magnitude();
+    let d = d / dist;
+
+    // Prise en compte de tmin et tmax
+    let dist = dist - crate::constants::RAY_EPS * 2.0;
+
+    // Vérifie s'il y a une intersection entre p0 et p1
+    let r = Ray::new(p0, &d).with_distance_max(dist);
+    self.hit(&r).is_none()
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cette fonction évalue la **visibilité** entre deux points : elle retourne `true` s'il n'existe aucun objet entre `p0` et `p1`.  
+Elle sera utilisée pour tester la visibilité entre le point échantillonné sur la lumière et le point d'ombrage (*shading point*).
+
+# Mise à jour de la structure `Intersection`
+
+Ajoutez un nouvel attribut `shape` à la structure `Intersection`.  
+Cet attribut permet d'identifier la **forme intersectée**, ce qui sera nécessaire pour déterminer si la surface touchée est une source de lumière et pour calculer la densité de probabilité associée.
+
+Modifiez vos implémentations de `hit` dans les formes `quad`, `sphere` et `triangle` afin d'initialiser correctement ce nouvel attribut.
+
+Après modification, votre structure `Intersection`, définie dans `src/shapes/mod.rs`, devrait ressembler à :
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub struct Intersection<'a> {
+    /// Distance d'intersection
+    pub t: f64,
+    /// Point d'intersection
+    pub p: Point3,
+    /// Normale de surface
+    pub n: Vec3,
+    /// Matériau au point d'intersection
+    pub material: &'a dyn Material,
+    /// Forme intersectée
+    pub shape: &'a dyn Shape, // **NEW**
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Veuillez modifier toutes les méthodes `hit` pour initialiser ce nouvel attribut (`its.shape = this;` ou équivalent) pour résoudre l'erreur de compilation.
+
+## Changements
+Les changements apportés à votre code sont disponibles dans la pull request suivante :
+- Ajout de nouvelles shapes: Triangle, Mesh. Mesh vous permet de charger des fichiers Obj. Il vous faudra mettre en oeuvre l'intersection des triangles (Tâche 1).
+
+Il est a noter que la fonction `json_to_shape` maintenant retourne une objet permettant de faire la distinction entre un Mesh et les autres formes. En effet, dans le cadre d'un Mesh, nous allons le convertir en une suite de triangle. Cet objet nous permet de faire cette distinction.
+
+
+# Devoir (90 pts)
+
+La validation utilisée pour ce devoir sera similaire à celle du Devoir 2 :
+
+1. Utilisation de l'exécutable `test` pour vérifier vos différentes formes et leur échantillonnage.  
+   Le code est disponible dans `devoirs/test.cpp`.  
+2. Utilisation de scènes de test pour évaluer l'éclairage direct et indirect.  
+
+Veuillez **décommenter** le code dans `lambda_pdf` et `lambda_sample` dans `examples/test.rs` pour les formes. Ces fonctions se trouvent vers la fin du fichier.
+
+Cela vous permettra de tester votre mise en œuvre.  
+Notez que ce code peut appeler des méthodes que vous n'avez pas encore implémentées, ce qui peut causer des erreurs de compilation ; vous pouvez les commenter temporairement.
+
+!!! WARN: Rappel
+    Il est **très important** de valider vos résultats avec l'exécutable `test`.  
+    Vérifiez notamment :
+    - Obtenez-vous des images de distribution similaires à celles présentes dans `scenes/devoir3` ?
+    - La densité de probabilité s'intègre-t-elle bien à 1 ? Si non, est-ce justifié ? (ex. : surface d'une sphère non visible depuis la caméra)
+    - La différence entre la densité de probabilité et les échantillons observés est-elle proche de 0 ?
+    - Le signe de la distribution de la différence est-il uniforme ? (image verte/rouge)
+
+## Tâche 1 : Intersection rayon-triangle (10 pts)
+
+Dans cette tâche, vous devez implémenter l'intersection rayon-triangle.  
+Nous utiliserons la méthode de [**Möller-Trumbore**](https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm).
+
+Vous pouvez trouver des implémentations en ligne, mais il est **fortement recommandé de la coder vous-même** afin d'en comprendre le fonctionnement.
+
+!!! WARN: Attention
+    Vous devez comprendre les principes de la méthode de [Möller-Trumbore](https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm).  
+    Pour cela, lisez la [section 2](http://www.graphics.cornell.edu/pubs/1997/MT97.pdf) du papier original, qui correspond à ce qui a été présenté en cours.  
+    Cette méthode est optimisée et repose essentiellement sur :
+    - L'utilisation de la [règle de Cramer](https://fr.wikipedia.org/wiki/R%C3%A8gle_de_Cramer) pour le calcul de la matrice inverse ;
+    - L'utilisation du produit mixte ([Triple product](https://en.wikipedia.org/wiki/Triple_product)) pour le calcul du déterminant.  
+
+    Des explications détaillées sont disponibles dans l'enregistrement du cours.
+
+Allez dans `src/shapes/triangle.rs` et complétez la méthode `hit(...)`.
+
+Les informations du triangle sont stockées dans un objet auxiliaire (`Mesh`).  
+Les positions et normales de sommets y sont déjà exprimées dans l'espace monde.  
+Remplissez tous les champs de la structure d'intersection : distance, normale, position, et matériau.  
+
+Si le maillage contient des normales par sommet (vérifiez avec `has_normal()`), effectuez une **interpolation barycentrique**.  
+Sinon, calculez la normale à partir du **produit vectoriel** des arêtes (formule vue en cours).
+
+Rendez ensuite la scène `02_triangles.json` avec l'intégrateur `normal`.  
+Le triangle de gauche utilise la normale géométrique ; celui de droite interpole les normales de sommets.  
+Vous devriez obtenir le résultat suivant :
+
+![`02_triangles`](../scenes/devoir3/ref-02_triangles.png border="1")
+
+Vous pouvez ensuite tester des scènes plus complexes comme `02_cornellbox.json`.  
+Les images de référence se trouvent dans `scenes/devoir3`.
+
+![`02_cornellbox.json`](../scenes/devoir3/ref-02_cornelbox.png border="1")
+
+## Tâche 2 : Échantillonnage des sources lumineuses (30 pts)
+
+Vous allez maintenant implémenter **l'échantillonnage direct des sources de lumière**.  
+
+La première étape consiste à ajouter de nouvelles méthodes, `sample_direct` et `pdf_direct`, pour les objets pouvant émettre de la lumière.  
+Comme plusieurs formes peuvent être lumineuses, ces méthodes seront ajoutées à la classe `Shape` :
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+// Échantillonnage d'un point sur la source lumineuse depuis le shading point x
+fn sample_direct(&self, p: &Point3, sample: &Vec2) -> (EmitterSample, &dyn Shape);
+
+// Densité de probabilité en **angle solide** de x vers le point y
+fn pdf_direct(&self, shape: &dyn Shape, p: &Point3, y: &Point3, n: &Vec3) -> Real;
+
+// Retourne le matériau associé à la forme (utile pour identifier une lumière)
+fn material(&self) -> &dyn Material;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+La méthode `sample_direct` retourne un objet `EmitterSample`, représentant un échantillon sur la source lumineuse.  
+Certaines lumières (ex. : *environment map*) échantillonnent des **directions** plutôt que des **positions**.  
+Si vous prévoyez d'implémenter ce type d'échantillonnage pour la compétition, consultez :  
+[PBRT - Infinite Area Lights](https://pbr-book.org/4ed/Light_Sources/Infinite_Area_Lights).  
+
+Dans ce devoir, nous nous limiterons à l'échantillonnage sur des **formes géométriques**.  
+Ainsi, les scènes contenant des *environment maps* (fond coloré) ne produiront pas de bons résultats : c'est normal.
+
+L'objet `EmitterSample` est défini comme suit :
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub struct EmitterSample {
+    pub y: Point3, // Position sur la source lumineuse
+    pub n: Vec3,   // Normale associée au point (si applicable)
+                   // sinon n = normalize(x - p)
+    pub pdf: Real, // Densité de probabilité (en angle solide)
+}
+
+impl EmitterSample {
+    pub fn new() -> Self {
+        EmitterSample {
+            y: Point3::new(0.0, 0.0, 0.0),
+            n: Vec3::zero(),
+            pdf: 0.0,
+        }
+    }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Implémentez l'échantillonnage pour les formes suivantes :
+- **Quad** : échantillonnage uniforme  
+- **Triangle** : échantillonnage uniforme  
+- **Sphère** : échantillonnage uniforme (un échantillonnage plus efficace sera proposé en bonus)
+
+!!! ERROR: Ensemble de formes et référence `shape`
+    La méthode `sample_direct` retourne une référence vers la forme échantillonnée.  
+    Cela permet de récupérer son matériau (via `material()`) pour évaluer la contribution lumineuse.  
+    Pour les formes `quad`, `triangle` et `sphere`, vous pouvez simplement retourner `*this`.
+
+    De même, `pdf_direct` reçoit une référence vers la forme échantillonnée pour calculer la densité de probabilité correcte lorsqu'il existe plusieurs lumières dans la scène.
+
+    Les formes composées (ex. : `ShapeGroup`) seront traitées à la **Tâche 3**.  
+    Pour l'instant, vous pouvez retourner un échantillon vide (`EmitterSample()`) et une densité nulle (`0.0`).
+
+!!! ERROR: Attention
+    Les densités de probabilité doivent être exprimées en **angle solide**.  
+    Lorsque vous échantillonnez un point sur une source lumineuse, vous travaillez initialement dans l'espace **surfacique**.  
+    Pour convertir cette densité en angle solide, utilisez la relation :
+    \[
+        p_\omega(\vec{\omega}) = p_a(x) \, \frac{d^2}{|\cos(\theta)|}
+    \]
+    où :
+    - \(p_a(x)\) est la densité surfacique (en m⁻²),
+    - \(d\) est la distance entre le point d'ombrage et le point échantillonné,
+    - \(\theta\) est l'angle entre la direction et la normale à la surface lumineuse.
+
+
+#### Validation de votre mise en œuvre
+
+Votre implémentation sera validée selon deux approches :
+
+1. **Avec le programme `test`** et les scènes situées dans `devoir3/tests`.  
+   Le programme fonctionne de la même façon que pour le Devoir 2.  
+   Les images produites utilisent une **paramétrisation sphérique** : les points échantillonnés par les émetteurs sont projetés vers la surface  
+   \( p = [0, 0, 0] \) avec une normale \( n = [0, 0, 1] \).  
+   Il est **normal** que la PDF ne s'intègre pas à 1.0 pour certaines formes — par exemple lorsque certaines portions de la surface lumineuse ne sont pas visibles.  
+
+2. **Avec le rendu direct** : dans la tâche suivante, vous utiliserez votre échantillonnage de lumières pour calculer l'éclairage direct.  
+   Les images obtenues doivent être **identiques (au bruit près)** à celles du Devoir 2 pour la partie “direct lighting”.  
+   > Note : l'échantillonnage des sources lumineuses ne supporte pas les matériaux à composantes discrètes (ex. : miroir parfait).
+
+### Forme : Quad
+
+Utilisez un **échantillonnage uniforme** sur un rectangle.  
+N'oubliez pas que celui-ci peut subir une transformation (position, taille, orientation) : cela influence la densité de probabilité.  
+
+La PDF surfacique doit être :
+\[
+p_A = \frac{1}{A}
+\]
+où \(A\) est l'aire du rectangle.
+
+Assurez-vous également de :
+- transformer le point et la normale échantillonnés dans l'espace monde ;
+- bien **normaliser la normale**.
+
+### Forme : Triangle
+
+L'échantillonnage doit être **uniforme dans l'espace surfacique**.  
+Contrairement au rectangle, le triangle **n'est pas transformé** : il est déjà exprimé dans l'espace monde (pour des raisons de performance).  
+Veillez donc à bien calculer la normale correspondante.
+
+Une méthode simple consiste à considérer un **parallélogramme** et à corriger les échantillons se trouvant hors du triangle, comme illustré ci-dessous :
+
+![Méthode d'échantillonnage d'un triangle](imgs/d3-triangle.png width=500 border="1")
+
+Les coordonnées aléatoires \((\xi_x, \xi_y)\) sont vos variables uniformes.  
+Si \(\xi_x + \xi_y > 1\), votre point se situe dans la mauvaise moitié du parallélogramme :  
+dans ce cas, utilisez les coordonnées \((1 - \xi_x, 1 - \xi_y)\).
+
+Pour plus d'informations, consultez la section [13.6.5]() du livre _Physically Based Rendering_.
+
+!!! Tips
+    L'aire du triangle est donnée par :
+    \[
+    A = \frac{1}{2} \| (p_1 - p_0) \times (p_2 - p_0) \|
+    \]
+
+!!! Info
+    D'autres paramétrisations d'échantillonnage existent.  
+    Celle-ci introduit une légère discontinuité qui peut réduire l'efficacité de certains algorithmes avancés (stratification, MCMC).  
+    Pour approfondir, consultez cet article sur les paramétrisations alternatives du triangle :  
+    [https://hal.archives-ouvertes.fr/hal-02073696v2/document](https://hal.archives-ouvertes.fr/hal-02073696v2/document)
+
+
+### Forme : Sphère
+
+!!! WARN: Important
+    Pour cette implémentation, nous ne considérons que des **transformations rigides** (sans mise à l'échelle).  
+    Cela simplifie grandement l'échantillonnage.
+
+Ici, il s'agit d'un **échantillonnage uniforme sur la surface d'une sphère**.  
+Réutilisez votre fonction d'échantillonnage sphérique du Devoir 2 (ex. : `sample_spherical`),  
+en prenant soin de tenir compte du rayon réel de la sphère, qui peut différer de 1.0.
+
+## Tâche 3 : Ensemble de sources lumineuses (5 pts)
+
+Implémentez une **sélection uniforme d'une source de lumière** parmi un ensemble d'objets.
+
+Adaptez la méthode `ShapeGroup::add_shape` pour mettre à jour la liste des sources lumineuses.  
+Pour savoir si une forme est une lumière, utilisez sa méthode `material()`.
+
+Le code à intégrer est fourni ci-dessous :
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+fn sample_direct(
+    &self,
+    p: &crate::vec::Point3,
+    sample: &crate::vec::Vec2,
+) -> (super::EmitterSample, &dyn Shape) {
+    let j = (sample.x * self.emitters.len() as f64) as usize;
+    let k = self.emitters[j];
+    // Rescale random number
+    let sample =
+        crate::vec::Vec2::new(sample.x * self.emitters.len() as f64 - j as f64, sample.y);
+    // Sample shape
+    let (mut ps, shape) = self.shapes[k].sample_direct(p, &sample);
+    ps.pdf *= 1.0 / self.emitters.len() as f64; // Update PDF
+    (ps, shape)
+}
+
+fn pdf_direct(
+    &self,
+    shape: &dyn Shape,
+    p: &crate::vec::Point3,
+    y: &crate::vec::Point3,
+    n: &crate::vec::Vec3,
+) -> crate::Real {
+    let pdf = 1.0 / self.emitters.len() as crate::Real;
+    pdf * shape.pdf_direct(shape, p, y, n)
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pour information, les méthodes `sample_direct` et `pdf_direct` modélisent un échantillonnage uniforme sur l'ensemble des sources lumineuses. Plus concrètement, la densité de cet échantillonnage est donnée par  
+\begin{equation}
+    p(j) = \frac{1}{N} \, .
+\end{equation}
+
+La composante $x$ de la variable aléatoire 2D passée en argument à `sample_direct` est utilisée pour sélectionner **à la fois** une source de lumière **et** un point sur celle-ci. C'est pourquoi il faut transformer la variable aléatoire $x$ afin que cette composante reste dans l'intervalle $[0, 1]$.  
+Pour $N$ sources lumineuses et $j$ l'indice échantillonné, on peut utiliser :
+\begin{equation}
+    x = (x N) - j
+\end{equation}
+pour effectuer cette transformation.
+
+!!! ERROR: Attention
+    N'oubliez pas que la densité de probabilité est désormais égale à $p(j) p(x \mid j)$, avec $p(j) = 1/N$ et $p(x \mid j)$ la densité associée à la forme $j$.  
+    Utilisez cette densité dans les méthodes `pdf_direct` et `sample_direct` de la forme.
+
+    **Veuillez bien retourner la forme sélectionnée dans la méthode `sample_direct` pour les formes composées, et non `*this`.**
+
+    Rappel : pour les autres formes, on retourne simplement (e.g., `return { …, *this };`).
+
+Testez votre implémentation avec la scène `tests/group.json`.
+
+![](../scenes/devoir3/tests/group-pdf.png width=330 border="1")
+
+Enfin, ajoutez ces deux méthodes dans l'objet `Scene` afin de pouvoir échantillonner une source de lumière au niveau de la scène.  
+Ces méthodes appelleront directement `sample_direct` et `pdf_direct` de l'attribut `m_root`, ce qui vous simplifiera les étapes suivantes.
+
+## Tâche 4 : Calcul de l'éclairage direct avec émetteurs (15 pts)
+
+Nous allons maintenant implémenter la stratégie d'échantillonnage `EEmitter`, correspondant à un échantillonnage explicite des sources lumineuses.
+
+!!! WARN: Attention
+    Pour cette tâche, nous utilisons la **paramétrisation directionnelle**.  
+    En effet, dans la tâche 2, les densités de probabilité ont été exprimées en **angle solide**, à partir de la normale de la surface de la source lumineuse (si elle existe).
+
+!!! WARN: Rappel - modification de `Scene`
+    Il est conseillé d'ajouter dans l'objet `Scene` les méthodes `sample_direct` et `pdf_direct`, qui appelleront directement celles de l'attribut `m_root`.
+
+Si le matériau au **shading point** est discret (`have_delta() == true`), utilisez uniquement la méthode d'échantillonnage proportionnelle au matériau (e.g., `sample`, comme dans le devoir précédent).  
+Sinon, utilisez `Scene::sample_direct` pour échantillonner un point sur une source lumineuse, puis évaluez la contribution de l'éclairage direct dans la paramétrisation directionnelle.  
+Pour tester la visibilité entre deux points, utilisez `visible(x, y)` défini dans `Scene`.
+
+Rappel : évaluez correctement
+- La valeur de la BSDF au *shading point* ainsi que son cosinus (via la méthode `evaluate`)
+- La valeur de la radiance émise : $L_e(x, y)$
+- La visibilité entre le point échantillonné et le *shading point*
+
+!!! WARN: Rappel
+    N'oubliez pas de diviser par la probabilité de sélection de la source lumineuse **et** du point sur celle-ci (exprimée en angle solide).
+
+    Faites également attention aux directions utilisées pour évaluer la BSDF et la radiance émise.  
+    La convention veut que les directions soient sortantes du *shading point* et de la source lumineuse, et qu'elles soient normalisées.
+
+Pour valider votre mise en œuvre, effectuez le rendu des scènes suivantes :  
+`odyssey_mats`, `odyssey_triangle_mats`.  
+Comparez les résultats obtenus avec la stratégie d'échantillonnage `EBSDF`, ainsi qu'avec la scène `04_materials-all` du devoir précédent (qui contient des matériaux à composantes discrètes).
+
+![`odyssey_mats.json`](../scenes/devoir3/ref-odyssey_mats.png width=330 border="1") ![`odyssey_triangle_mats.json`](../scenes/devoir3/ref-odyssey_triangle_mats.png width=330 border="1")
+
+![`04_all-materials-direct.json`](../scenes/devoir2/04_all-materials-direct.png width=330 border="1")
+
+## Tâche 5 : Calcul du direct avec MIS (20 pts)
+
+Nous allons maintenant mettre en œuvre la stratégie d'échantillonnage `EMIS`, correspondant à un échantillonnage explicite des sources lumineuses avec *Multiple Importance Sampling* (MIS).  
+Le pseudo-code suivant illustre la technique de MIS, où `x` correspond au *shading point* et `y` à un point sur la source lumineuse. `eval_bsdf(...)` s'évalue au *shading point* et `L_e(...)` sur la source lumineuse.  
+Faites attention aux directions calculées. **Certaines fonctions s'attendent à recevoir des directions normalisées.**
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python
+contrib = Color3()
+# Récupérer le matériau au shading point
+mat = its.material()
+x = its.p
+
+# Échantillonnage émetteur
+[pdf_emitter1, y, emitter] = scene.sample_direct(x)
+if (visible(x, y) && !mat.is_delta()):
+    # Poids MIS
+    pdf_bsdf1 = mat.pdf(x, y)
+    mis_w = pdf_emitter1 / (pdf_bsdf1 + pdf_emitter1)
+    
+    # Contribution (pondérée par le poids MIS)
+    # Rappel : mat.eval(...) retourne la valeur de la BSDF multipliée par le cosinus
+    contrib += mis_w * mat.eval(...) * emitter.L_e(...) / pdf_emitter1
+
+# Échantillonnage BSDF
+# weight_bsdf = mat.eval(...) / mat.pdf(...)
+[weight_bsdf, pdf_bsdf2, w] = mat.sample(x)
+if ([shape, y, n] = intersect_emitter(x, w)):
+    # Poids MIS
+    mis_w = 1.0
+    if (!mat.is_delta()): # Explication dans l'énoncé
+        pdf_emitter2 = scene.pdf_direct(shape, x, y, n)
+        mis_w = pdf_bsdf2 / (pdf_bsdf2 + pdf_emitter2)
+    
+    # Contribution (pondérée par le poids MIS)
+    contrib += mis_w * weight_bsdf * shape.L_e(...)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!!!
+    Notez que, dans le pseudo-code, nous fixons le poids MIS à 1 lorsque le matériau est spéculaire.  
+    En effet, mettre un poids de 1 désactive le MIS dans ce cas (la valeur du poids est alors ignorée).
+
+Si vous obtenez de mauvais résultats, vérifiez les points suivants :
+- Utilisez-vous les bonnes directions, **normalisées** et exprimées dans le bon espace (local/monde) ?
+- Utilisez-vous les densités de probabilité correctes (exprimées en **angle solide**) ?
+
+## Tâche 6 : Tracé de rayons avec MIS (10 pts)
+
+Réutilisez votre mise en œuvre de l'éclairage direct avec MIS pour implémenter un intégrateur de tracé de rayons avec MIS.  
+Pour cela, dupliquez votre intégrateur `path` dans un nouvel intégrateur `path_mis`, puis modifiez-le pour utiliser l'échantillonnage du direct MIS.  
+Il est conseillé de définir une méthode `direct_mis` comme adaptation de votre code de calcul du direct, puis d'appeler cette méthode dans la boucle principale de tracé de rayons.  
+Référez-vous aux diapositives du cours pour plus d'informations sur cette implémentation.
+
+Comparez cette mise en œuvre avec l'intégrateur `path` sur la scène `04_all-materials`.
+
+## Tâche bonus (10 pts max)
+
+!!! WARN: Attention
+    Les points bonus ne seront crédités que si les autres tâches ont été implémentées.  
+    Certaines tâches n'ont pas été vues en cours et peuvent demander un temps significatif. Elles visent uniquement à aller plus loin.
+
+Les tâches bonus peuvent également compter pour les points de la compétition de rendu.
+
+### Amélioration de l'échantillonnage de la sphère (10 pts)
+
+Mettez en œuvre l'échantillonnage de la sphère **uniforme en angle solide**.  
+Au lieu d'échantillonner un point uniformément sur la sphère complète (ou l'hémisphère), utilisez le **domaine directionnel** pour obtenir un meilleur échantillonnage.  
+La projection d'une sphère depuis un point forme un cône dans l'espace des directions.
+
+!!! WARN: Méthode d'échantillonnage
+    Ajoutez un booléen dans le fichier JSON pour activer/désactiver cette méthode d'échantillonnage.
+
+La première étape consiste à déduire l'angle de ce cône. À l'aide de la trigonométrie, on obtient :
+
+![Calcul de l'angle $\theta_{max}$, Peter Shirley (Ray Tracing: The Rest of Your Life)](imgs/d3-theta-max.jpg)
+
+On peut utiliser l'expression du cosinus et le théorème de Pythagore pour trouver :  
+$ \cos(\theta_{max}) = \sqrt{d^2 - r^2}/d $, où $ d = \lVert c - x \rVert $.
+
+!!! WARN: Attention
+    **Dans certains cas, cette équation est invalide.** Quelle est la valeur de $\theta_{max}$ dans ce cas ? Quelle stratégie d'échantillonnage utiliser alors ?
+
+    Rappel : le rayon de la sphère n'est pas modifié par une transformation rigide.
+
+Si vous obtenez une valeur valide de $\theta_{max}$, utilisez votre stratégie `sample_cone` développée au devoir 2.  
+Alignez ensuite la direction échantillonnée vers le centre de la source en construisant un repère local (objet `Frame`) et en transformant la direction.
+
+Enfin, il faut retourner un **point** échantillonné sur la source lumineuse (à partir de la direction).  
+Pour trouver ce point, lancez un rayon depuis le *shading point* `p` dans la direction échantillonnée, puis utilisez les informations d'intersection pour remplir l'objet `EmitterSample`.  
+Faites attention au **domaine** dans lequel la PDF est exprimée.
+
+Testez votre mise en œuvre avec la scène `tests/sphere.json`.  
+Votre distribution devrait être uniforme en angle solide.  
+Comparez les performances de cette méthode avec l'échantillonnage uniforme sur la sphère pour les scènes `sphere_light_small.json`, `sphere_light_medium.json` et `sphere_light_large.json`.
+
+**Remettez vos résultats comparant la méthode uniforme avec cette nouvelle méthode d'échantillonnage.**
+
+### Carte d'environnement (10 pts)
+
+Créez une nouvelle structure `EnvironmentMap` dans `src/scene.rs`.  
+Déplacez l'attribut `background` de la scène vers cette nouvelle structure.  
+Adaptez votre code de scène pour utiliser cette structure (e.g., `Scene::background`).
+
+Cet objet possède également un rayon de sphère englobant la scène, calculé par
+\begin{equation}
+    r = \max(\mathrm{aabb.diagonal}).
+\end{equation}
+
+L'échantillonnage de la carte d'environnement est simple : échantillonnez une **position** sur une sphère de rayon `r` centrée en `p` (le point où l'éclairage direct est évalué).  
+Ce point échantillonné permet de remplir l'objet `EmitterSample` (pas de normale associée).  
+La densité de probabilité vaut $1/(4\pi r^2)$ et doit être **convertie en angle solide**.
+
+Modifiez vos collections de formes pour pouvoir ajouter la carte d'environnement.  
+Implémentez également le calcul de la PDF correspondante dans `Scene`.  
+Enfin, adaptez votre code de calcul du direct et de tracé de rayons pour supporter le MIS avec la carte d'environnement.
+
+### Réutilisation de la direction échantillonnée (5 pts)
+
+Réutilisez la direction échantillonnée par les matériaux pour le calcul du direct (MIS) **et** de l'indirect.
+
+### Flux-based sampling (5 pts)
+
+Modifiez les interfaces des matériaux et des formes pour pouvoir calculer le **flux émis**.  
+Utilisez une CDF 1D pour sélectionner les sources proportionnellement à leur flux dans la scène.  
+Vérifiez votre mise en œuvre avec la scène `tests/group.json` (en adaptant le test).
+
+# Soumettre votre devoir
+
+Créez une archive contenant :
+- tous les fichiers des dossiers `include`, `devoirs` et `src` ;
+- toutes les images générées pour ce devoir (en **OpenEXR**) ;
+- un fichier PDF contenant vos réponses aux questions du devoir (images incluses si nécessaire).
+
+Soumettez cette archive sur Moodle. Attention à la date limite (voir Moodle).
+
+<!-- Markdeep: -->
+<style class="fallback">
+    body {
+        visibility: hidden
+    }
+</style>
+<script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script> 

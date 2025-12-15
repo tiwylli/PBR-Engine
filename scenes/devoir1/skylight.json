@@ -1,0 +1,50 @@
+{
+  "camera": {
+    "transform": {
+      "o": [0, 0, 3]
+    },
+    "vfov": 90,
+    "resolution": [640, 480]
+  },
+  "sampler": {
+    "type": "independent",
+    "samples": 100
+  },
+  "background": [1, 1, 1],
+  "background_texture": "scenes/devoir1/test_img.png",
+  "materials": [
+    {
+      "type": "diffuse",
+      "name": "white"
+    },
+    {
+      "type": "metal",
+      "name": "metal",
+      "roughness": 0.0
+    }
+  ],
+  "shapes": [
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": -90
+        },
+        {
+          "translate": [0, -1, 0]
+        }
+      ],
+      "size": 100,
+      "material": "white"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [0.0, 0.0, 0]
+      },
+      "radius": 2.0,
+      "material": "metal"
+    }
+  ]
+}

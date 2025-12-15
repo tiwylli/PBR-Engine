@@ -1,0 +1,439 @@
+<meta charset="utf-8" emacsmode="-*- markdown -*-">
+
+<title>MTI870 - Devoir 2 - Monte Carlo I (Rust) - Version 1.05</title>
+**MTI870 - Devoir 2 - Version 1.05 (Rust)**
+
+# Objectifs du devoir 
+
+- Mise en place des intégrateurs.
+- Mettre en œuvre l'échantillonnage analytique par inversion.
+- Adapter vos matériaux pour utiliser cet échantillonnage et mettre en œuvre de nouveaux matériaux.
+- Tester votre mise en œuvre avec le calcul du direct.
+
+# Mettre à jour votre code
+
+Premièrement, **veuillez commit tous les changements que vous avez et "push" ces changements sur GitHub. Cela permet de s'assurer que vous ne perdiez pas votre travail en cas de mauvaise manipulation.**
+
+Une pull request sera créée pour mettre à jour votre code pour le devoir 3 todo. Les principaux changements sont les suivants :  
+- Ajout de classes représentant le processus d'intégration (`integrators/`) (Tâche 1). Une mise en œuvre de référence du multithreading vous est fournie.  
+- Ajout de l'exécutable `devoir_2` pour tester les différentes distributions d'échantillonnage.  
+- Ajout de l'exécutable `test` pour tester les différents matériaux.  
+- Ajout des images de référence et des scènes de test pour valider votre mise en œuvre.  
+- Ajout de fonctions communes comme `modulo` ou `fresnel` dans `src/lib.rs`.  
+- Changements mineurs concernant le chargement des informations du fichier JSON.  
+
+Enfin, il y a de nouvelles fonctionnalités du programme `render` :  
+- `-t (--threads)` : permet de spécifier le nombre de processus (threads) pour le calcul parallèle. Par défaut, tous les cœurs de votre machine sont utilisés pour le rendu.  
+Les arguments pour la version *Rust* sont identiques à un argument près. Merci d'utiliser `-h` pour plus d'information.  
+
+
+Si vous avez des questions par rapport à ce code de base, n'hésitez pas à me contacter.
+
+# Devoir (100 pts)
+
+Pour valider les différentes mises en œuvre de ce devoir, vous allez utiliser plusieurs approches :  
+1. Utilisation du code `devoir_2` permettant de comparer la distribution des échantillons (histogramme) et la densité de probabilité. Plus d'informations dans le Cours 04.  
+2. Utilisation de l'exécutable `test` permettant de tester vos différents matériaux. Le code est disponible dans `devoirs/test.cpp`.  
+3. Utilisation de scènes de test pour le calcul du direct.  
+
+!!! WARN: Attention
+    Il est très important de vérifier que vous obteniez des résultats valides avec `devoir2` et `test`. Les choses à vérifier sont :  
+    - Est-ce que vous obtenez des images de distribution similaires à celles présentes dans `scenes\devoir2` ?  
+    - Est-ce que la densité de probabilité s'intègre bien à 1 ? Si ce n'est pas le cas, est-ce normal ? (p. ex., un lobe de Phong peut générer des directions invalides en dessous de l'hémisphère)  
+    - Est-ce que la différence entre la densité de probabilité et les échantillons observés est proche de 0 ?  
+    - Est-ce que le signe de la distribution de la différence est uniforme ? (image verte-rouge)  
+
+Notez que lors de votre projet final, il est attendu que vous validiez vos résultats de manière rigoureuse. Vous allez peut-être utiliser `test` ultérieurement.
+
+## Tâche 1 : Intégrateurs (15 pts)
+
+Il est courant d'avoir plusieurs techniques différentes pour générer des images. Par exemple, dans le devoir 1, vous avez généré des images contenant l'information des intersections (position, distance, normales). Ces images vous permettaient de valider certains aspects de votre mise en œuvre (e.g., calcul des normales, distance d'intersection).  
+Les différentes méthodes d'intégration seront spécifiées dans le dossier `src/integrators`.  
+
+Dans ce dossier, vous avez le fichier `mod.rs`. Celui-ci spécifie des traits de base pour le processus d'intégration. `Integrator` est un trait représentant un processus d'intégration abstrait (e.g., permet de générer une image à partir d'une scène fournie). Le trait `SamplerIntegrator` permet de spécialiser le processus d'intégration pour effectuer une intégration indépendante par pixel. C'est ce type d'intégration que vous avez mis en œuvre dans le devoir 1. Une implémentation par défaut de la méthode `render(...)` est disponible dans ce fichier. Cette fonction est utilisée pour implémenter le trait `Integrator` dans les structures dérivant du trait `SamplerIntegrator`.  
+
+### Normal (2 pts)
+
+Allez dans `include/render/integrators/normal.h`todo et modifiez `Li` pour retourner une couleur correspondant à l'orientation de la normale au point d'intersection.  
+
+**Pour effectuer l'intersection d'un rayon avec la scène, appelez la méthode `Scene::hit(...)`.** Appeler cette méthode est nécessaire au bon calcul des statistiques. Pour tester, effectuez le rendu de `-i example_scene3` avec `render` et l'option `-a ./scenes/normal.json`. Pour rappel, l'option `-a` permet de modifier la configuration de la scène avec un fichier JSON additionnel. Voici un exemple :  
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ bash
+cargo run --release --example=render --  -i example_scene3 -a .\scenes\normal.json
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+Une image de référence vous est fournie dans le dossier `scenes/devoir2`. Vous pouvez comparer votre image avec celle-ci.
+
+![`example_scene3 avec normal`](../scenes/devoir2/01_example_scene3-normal.png border="1" width=94%) ![`01_plane-normal`](../scenes/devoir2/01_plane-normal.png border="1") 
+
+### Transformer code ray tracing (sans récursion) (8 pts)
+
+!!! ERROR: Devoir 1
+    Si dans le devoir 1 il vous manquait des fonctionnalités, merci de me contacter rapidement pour que je puisse corriger votre code (ou vous donner la solution). En effet, cette sous-tâche est la suite de la tâche 7 du devoir 1.  
+
+Copiez votre code de `Scene::trace` dans `PathIntegrator::Li(..)` dans `src/integrators/path.rs`.  
+
+Adaptez votre code pour ne pas utiliser la récursion (pas d'appel supplémentaire à Li). Des instructions pour effectuer cette conversion vous sont fournies en commentaire. Vous pouvez tester votre implémentation avec `example_scene3`. **Vous devriez obtenir la même image que dans le devoir 1**. Vous n'avez pas besoin de modifier le fichier JSON du devoir précédent pour effectuer vos tests. Si aucun intégrateur n'est spécifié, c'est l'intégrateur `path` qui est utilisé par défaut. Vous devriez pouvoir reproduire les images du devoir 1, au bruit près.  
+
+### Éclairage direct (5 pts)
+
+Créez un nouvel intégrateur `direct`. Le but de cet intégrateur est de calculer l'éclairage direct. Cela va vous permettre de comparer plus facilement les différentes méthodes d'échantillonnage. Vous pouvez partir de l'intégrateur `path`. N'oubliez pas d'ajouter cet intégrateur à la liste des intégrateurs:
+    - Éditer le fichier `src/integrators/mod.rs` et rajouter ce nouvel intégrateur dans la fonction `json_to_integrator`. Vous devez aussi ajouter `pub mod uv`.
+
+Cet intégrateur va calculer l'éclairage direct avec différentes méthodes d'échantillonnage. Il est attendu que les différentes méthodes, avec assez d'échantillons, produisent la même image (au bruit près) — sauf sur certains matériaux spéculaires. Vous pouvez utiliser `tev` pour visualiser les différences. Pour ce devoir, on vous a fourni les images de référence en format PNG et OpenEXR. Pour la validation, veuillez utiliser les images OpenEXR (en utilisant `tev`).  
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+use std::collections::HashMap;
+use cgmath::Array;
+use tinyjson::JsonValue;
+use crate::{vec::Color3, scene::Scene, samplers::Sampler, ray::Ray,
+            json::json_to_string};
+use super::{Integrator, render, SamplerIntegrator};
+
+enum DirectType {
+    EBSDF,    // Utilisation bsdf.sample(...) -- Tâche 1
+    ENaive,   // Tâche 4
+    EEmitter, // Devoir 3 (prochain devoir)
+    EMIS      // Devoir 3 (prochain devoir)
+}
+
+pub struct DirectIntegrator {
+    direct_type: DirectType
+}
+
+impl DirectIntegrator {
+    pub fn from_json(json: &HashMap<String, JsonValue>) -> Self {
+        let strategy = json_to_string(json, "strategy", "bsdf");
+        let direct_type = match strategy.as_str() {
+            "bsdf" => DirectType::EBSDF,
+            "naive" => DirectType::ENaive,
+            "emitter" => DirectType::EEmitter,
+            "mis" => DirectType::EMIS,
+            _ => panic!("Unknown strategy {}", strategy),
+        };
+        Self { direct_type }
+    }
+}
+
+impl Integrator for DirectIntegrator {
+    fn render(
+        &mut self,
+        scene: &crate::scene::Scene,
+        sampler: &mut dyn crate::samplers::Sampler,
+    ) -> crate::array2d::Array2d<Color3> {
+        render(self, scene, sampler)
+    }
+}
+
+impl SamplerIntegrator for DirectIntegrator {
+    fn preprocess(&mut self, _: &Scene, _: &mut dyn Sampler) {}
+
+    fn li(&self, ray: &Ray, scene: &Scene, sampler: &mut dyn Sampler) -> Color3 {
+        // votre code ici :
+        // - intersection dans la scène pour trouver le premier point d'intersection
+        // - vérifier si l'intersection est valide, sinon couleur de fond
+        // - vérifier si ce point d'intersection est sur une source de lumière
+        //   si oui, retourner la couleur de la source de lumière
+        // - sinon, calculer l'éclairage direct (voir les différentes stratégies)
+        match self.direct_type {
+            _ => Color3::from_value(0.0)
+        }
+    }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Mettez en œuvre une technique `EBSDF` qui échantillonne une direction uniquement proportionnellement aux matériaux. Pour ce faire, vous pouvez utiliser la méthode `sample` des matériaux. Ensuite, envoyez un rayon et vérifiez si vous intersectez un objet. Si c'est le cas, évaluez l'émission de la surface (attention à bien utiliser les coordonnées locales). Sinon, retournez la couleur de fond.  
+
+!!! INFO: Validation
+    Utilisez l'argument `-a` pour tester votre intégrateur. Vous devriez obtenir les mêmes images qu'avec l'intégrateur `path` avec un `max_depth` de 1 ou 2. N'oubliez pas d'utiliser une structure accélératrice si vous voulez réduire le temps de rendu. Pour valider votre mise en œuvre, vérifiez que vous obtenez les mêmes images que celles des scènes du devoir précédent. Quelques images pour vous aider sont disponibles dans le dossier `scenes/devoir2`.
+
+!!! INFO: Conseil
+    La technique d'échantillonnage demandée dans cette tâche 1 correspond à celle utilisée dans l'intégrateur `Path`. La seule différence ici est que l'on ne veut pas faire de récursion pour calculer l'éclairage indirect. Il faut tout de même trouver le premier point d'intersection avec la scène.
+
+## Tâche 2 : Distributions simples (25 pts)
+
+Cette tâche consiste à mettre en œuvre l'échantillonnage des distributions suivantes :  
+- Sphère de façon uniforme (e.g., `sample_spherical` et `pdf_spherical`)  
+- Hémisphère de façon uniforme (e.g., `sample_hemisphere` et `pdf_hemisphere`)  
+- Distribution proportionnelle au cosinus sur un hémisphère ($\cos(\theta)$) (e.g., `sample_hemisphere_cos` et `pdf_hemisphere_cos`)  
+- Distribution proportionnelle au cosinus à la puissance $n$ sur un hémisphère ($\cos(\theta)^n$) (e.g., `sample_hemisphere_cos_pow` et `pdf_hemisphere_cos_pow`)  
+- Un cône de façon uniforme (e.g., `sample_cone` et `pdf_cone`) d'ouverture $\theta_{max}$  
+
+La normale permettant de définir l'orientation de la surface (virtuelle) est $(0, 0, 1)$. C'est la même normale que celle utilisée pour l'échantillonnage des matériaux (en espace local).  
+
+Pour réaliser ces mises en œuvre, ouvrez `devoir_2` et complétez `tasks2()` ainsi que les fonctions appelées. Vérifiez vos résultats en comparant les distributions obtenues. Toutes les distributions que vous devez coder ont été vues en cours. Merci d'utiliser les diapositives disponibles sur Moodle pour guider votre mise en œuvre. Un bon exercice est de redériver ces distributions.  
+
+Si vous échantillonnez une direction en coordonnées sphériques, n'oubliez pas de convertir en coordonnées cartésiennes :  
+\begin{equation}
+    \vec{\omega} = (\sin(\theta)\cos(\phi), \sin(\theta)\sin(\phi), \cos(\theta))
+\end{equation}
+
+!!! WARN: Attention
+    Les fonctions "pdf" comme `pdf_spherical` prennent une direction (normalisée) en argument. Cette direction peut être n'importe quelle direction sur une sphère. Donc, dans le cas des distributions hémisphériques, la valeur de la densité de probabilité est $0$ (e.g., quand la direction est en dessous de la surface virtuelle).  
+
+Les visualisations utilisent la paramétrisation latitude-longitude. L'exécution de `devoir_2` va générer des images supplémentaires :  
+- L'histogramme des échantillons générés en utilisant la fonction `sample` (e.g., `sample_spherical`)  
+- La densité de probabilité évaluée en utilisant la fonction `pdf` (e.g., `pdf_spherical`)  
+- La différence entre l'histogramme et la densité de probabilité (e.g., `sample_spherical - pdf_spherical`) — en vert-rouge  
+
+![Sphère](../scenes/devoir2/02_pdf-sphere.png height=110 border="1") ![Hémisphère](../scenes/devoir2/02_pdf-hemisphere.png height=110 border="1") ![Cosinus](../scenes/devoir2/02_pdf-hemisphere-cos.png height=110 border="1")  
+![Cosinus pow=20](../scenes/devoir2/02_pdf-hemisphere-cos-pow20.png height=110 border="1") ![Cône](../scenes/devoir2/02_pdf-cone.png height=110 border="1")  
+
+## Tâche 3 : Échantillonnage des matériaux (40 pts)
+
+Après avoir validé les différentes stratégies d'échantillonnage de la tâche 2, vous allez retirer tous les échantillonnages par *rejection sampling* utilisés actuellement dans les matériaux. Nous allons aussi mettre en œuvre des méthodes supplémentaires permettant l'évaluation de la mixture (voir Cours 4).  
+
+Veuillez ouvrir `src/materials/mod.rs` et remplacer le trait `Material`:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub trait Material: Send + Sync {
+    //  !!!!!!!!!!!!!!!!!!! Attention !!!!!!!!!!!!!!!!!!!
+    // cette méthode remplace votre méthode "sample" utilisant un "Sampler& s"
+    //  !!!!!!!!!!!!!!!!!!! Attention !!!!!!!!!!!!!!!!!!!
+    // En effet, nous allons utiliser un nombre aléatoire 2D (const Vec2& sample)
+    // pour échantillonner une direction proportionnelle à "f_r(...) cos(theta)" 
+    // (si possible)
+    fn sample(
+        &self,
+        wo: &Vec3,
+        s: &Vec2,
+    ) -> Option<SampledDirection>;
+    // nouvelle méthode pour évaluer la valeur du matériau f_r(d_in, d_out)
+    // multipliée par le cosinus -- Mettre en œuvre pour tâche 4
+    fn evaluate(&self, wo: &Vec3, wi: &Vec3) -> Color3;
+    // nouvelle méthode pour évaluer la valeur de la PDF p(wi | wo) 
+    // testée seulement dans la tâche 4
+    fn pdf(&self, wo: &Vec3, wi: &Vec3) -> f64;
+    // nouvelle méthode pour signifier si le matériau contient une composante discrète
+    fn have_delta(&self) -> bool;
+    // Méthode pour évaluer la couleur émise par le matériau
+    fn emission(&self, wo: &Vec3) -> Color3;
+    // Méthode pour signifier si le matériau émet de la lumière
+    fn have_emission(&self) -> bool;
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+La modification de la signature de la méthode `sample` va provoquer de nombreuses erreurs de compilation. Résolvez ces erreurs en appelant `sampler.next2d()` et corrigez la méthode `sample` pour les matériaux.  
+Vous devez aussi éditer `examples/test.rs` pour utiliser cette nouvelle signature de la méthode `sample`.  
+
+!!! WARN: Important
+    Réutilisez les méthodes d'échantillonnage et d'évaluation de la densité que vous avez développées dans la tâche 2 pour échantillonner les matériaux.  
+    Pour ce faire, copiez les fonctions `sample_XXX` et `pdf_XXX` à la fin du fichier `render/vec.rs` todo.  
+    Ensuite, supprimez ces fonctions du `devoir_3` pour éviter les conflits de noms.  
+
+!!! ERROR: Attention
+    La méthode `evaluate` doit retourner la valeur de la BSDF multipliée par le facteur de cosinus :  
+    \begin{equation}
+        evaluate(x, \vec{\omega_i}, \vec{\omega_o}) = f_r(x, \vec{\omega_i}, \vec{\omega_o}) \cos(\theta)
+    \end{equation}
+
+    La méthode `sample` doit retourner la valeur de la BSDF multipliée par le facteur de cosinus, divisée par la densité de probabilité :  
+    \begin{equation}
+        sample(x, \vec{\omega_o}) = \frac{f_r(x, \vec{\omega_i}, \vec{\omega_o}) \cos(\theta)}{p(\vec{\omega_i} \,|\, x, \vec{\omega_o})}
+    \end{equation}
+
+    **N'oubliez pas de spécifier si le matériau est spéculaire ou non (avec la méthode `have_delta`). Si le matériau est spéculaire, retournez une valeur de 0 pour la PDF et noir pour l'évaluation du matériau.**
+
+### Tester votre mise en œuvre
+
+Vous pouvez évaluer votre mise en œuvre des matériaux de plusieurs façons :  
+- Utilisez l'outil `test`. Cet outil va effectuer les mêmes tests que pour la tâche 2, mais appliqués aux matériaux. Vous pouvez utiliser l'argument `-i` pour tester un matériau spécifique (en format JSON). L'argument `-o` permet de spécifier le nom du fichier de sortie. Les fichiers JSON de test sont disponibles dans le dossier `scenes/devoir2/tests`. Plusieurs orientations des directions $\vec{\omega_o}$ sont définies dans le fichier JSON. Vous êtes libre de modifier ces orientations pour tester votre mise en œuvre. **Cette méthode de test permet de valider votre mise en œuvre de `sample` (uniquement la direction) et `pdf`.**  
+- Dans les tâches suivantes, vous allez mettre en œuvre de nouvelles stratégies d'échantillonnage (`ENaive` et `EBSDFEval`). **Le but de ces intégrateurs est de vous permettre de tester votre mise en œuvre de `evaluate` et `sample` (weight).**  
+
+Pour la scène de test, vous pouvez utiliser `04_all-materials.json` qui contient une variété de matériaux. Vous pouvez utiliser l'argument `-a` de `render.exe` pour changer la stratégie d'échantillonnage. Ci-dessous, les détails pour chaque matériau.  
+
+![](imgs/d2-all-materials.png)
+
+!!! INFO: Conseils
+    Les matériaux comme le métal (avec roughness = 0) ou bien le diélectrique doivent correctement fonctionner. Il faut s'assurer que les méthodes `pdf` et `evaluate` retournent des valeurs correctes.  
+
+    Veillez à vérifier que les directions générées ou bien fournies dans les différentes méthodes soient valides. En effet, il n'est pas rare que des directions invalides soient produites. Par exemple, une direction située en dessous de la surface.  
+
+
+### Diffus
+
+Basez-vous sur les concepts vus dans le cours 7todo. Je vous rappelle que la BRDF diffuse est définie par :  
+\begin{equation}
+    f_r(x, \vec{\omega_i}, \vec{\omega_o}) = \frac{\rho_d}{\pi}
+\end{equation}
+
+On s'attend à ce que vous utilisiez la distribution proportionnelle au cosinus sur un hémisphère ($\cos(\theta)$) pour échantillonner la direction $\vec{\omega_i}$. La densité de probabilité est donc :  
+\begin{equation}
+    p(\vec{\omega_i} \,|\, x, \vec{\omega_o}) = \frac{\vec{\omega_i} \cdot \vec{n}}{\pi}
+\end{equation}
+
+### Matériaux spéculaires
+
+Les matériaux spéculaires (`dielectric`, `metal`) doivent retourner `pdf()` à $0.0$ et l'évaluation de la BRDF (`evaluate(...)`) à noir. En effet, il est impossible d'évaluer une distribution modélisée par un ou des Diracs. D'autre part, la probabilité d'échantillonner au hasard une (ou des) directions discrètes est de $0$.  
+
+La méthode `sample` reste inchangée (sauf pour métal, voir commentaire ci-dessous). En effet, comme vu en cours, le Dirac de la densité de probabilité et du matériau s'annule lors du calcul de :  
+\[
+    \frac{f_r(x, \vec{\omega_i}, \vec{\omega_o})}{p(\vec{\omega_i} \,|\, x, \vec{\omega_o})}
+\]
+
+### Métal avec rugosité
+
+Pour un métal avec une certaine rugosité (`roughness > 0.0`), votre code actuel échantillonne un point dans une sphère pour perturber la direction réfléchie. Cependant, comme discuté en cours, cette méthode n'a pas d'intuition physique. **Pour corriger ce problème, nous allons remplacer cette méthode par un échantillonnage d'un lobe de Phong.** Pour la formulation et son échantillonnage, référez-vous aux diapositives du cours.  
+
+La formule pour transformer le rayon de la sphère (contrôlé par `roughness`) en un exposant de Phong $n$ est :  
+\begin{equation}
+    n = \frac{2}{roughness^2} - 2
+\end{equation}
+
+C'est une conversion approximative. Vous ne pourrez donc pas reproduire exactement les résultats des devoirs précédents utilisant des métaux avec rugosité. Vous pouvez valider cette mise en œuvre avec la scène `03_roughness.json`, identique à celle du devoir 1.  
+
+!!! INFO: Tips
+    Pour cette mise en œuvre, vous allez d'abord échantillonner un lobe centré en $[0, 0, 1]$ (espace local). Ensuite, utilisez `Frame` pour aligner le lobe dans la direction de réflexion. N'oubliez pas de tester si la direction finale est au-dessus de l'hémisphère (e.g., si le cosinus est positif). Si ce n'est pas le cas, retournez une valeur de $0$ pour la PDF et noir pour l'évaluation du matériau.  
+
+!!! ERROR: Attention
+    Dans le cas d'une rugosité supérieure à $0.0$, le matériau n'est plus discret. Il faut donc adapter les autres méthodes en conséquence.  
+
+    Vous devez aussi retourner la bonne densité et la bonne évaluation du matériau (e.g., lobe de Phong). Faites attention au fait que l'angle $\alpha$ (notation du cours) est l'angle entre $\theta_i$ et la direction de réflexion.  
+
+    Enfin, nous voulons toujours que :  
+    \[
+    \frac{f_r(x, \theta_i, \theta_o) \cos(\theta)}{p(\theta_i \,|\, x, \theta_o)} = k_s
+    \]  
+    Ici, on considère que le $\cos(\theta)$ est annulé par $f_r(x, \theta_i, \theta_o)$. Donc il faut que :  
+    \[
+    \frac{f_r(x, \theta_i, \theta_o)}{p(\theta_i \,|\, x, \theta_o)} = k_s
+    \]
+
+### Matériaux (Fresnel) blend 
+
+Dans les matériaux `blend` et `fresnel_blend`, plusieurs matériaux sont combinés pour former un matériau contenant plusieurs lobes. Leur formulation est :  
+- `blend`: $\alpha \cdot matA(d_{in}, uv) + (1-\alpha) \cdot matB(d_{in}, uv)$  
+- `fresnel_blend`: $Fr(d_{in}, \eta) \cdot matA(d_{in}, uv) + (1-Fr(d_{in}, \eta)) \cdot matB(d_{in}, uv)$  
+
+où $matA$ et $matB$ sont l'évaluation des matériaux A et B, et $Fr$ une fonction de Fresnel. Pour l'échantillonnage, sélectionnez $matA$ avec une probabilité de $\alpha$ ou $Fr$, sinon échantillonnez $matB$.  
+
+Voici la spécification JSON que vos matériaux doivent supporter :  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ json
+{
+    "materials" : [
+        {
+            "type" : "blend",
+            "alpha" : "texture_blend.png",
+            "matA" : { 
+                // Un matériau enfant (ici diffus)  
+                "type" : "diffuse"
+            },
+            "matB" : {
+                // Un autre matériau enfant (ici métal)
+                "type" : "metal"
+            }
+        },
+        {
+            "type" : "fresnel_blend",
+            "eta" : 1.5, // Valeur par défaut 
+            "matA" : {
+                "type" : "diffuse"
+            },
+            "matB" : {
+                "type" : "metal"
+            }
+        }
+    ]
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+Pour créer les matériaux A et B, vous pouvez appeler la fonction `json_to_material(param["matA"])`. Pour le matériau `fresnel_blend`, utilisez la fonction `fresnel` définie dans `src/lib.rs`. `eta` ($\eta$) correspond à $\eta_t$ (on suppose $\eta_i = 1$). Enfin, pour pouvoir construire ces matériaux lors du chargement de la scène, ajoutez-les dans `src/materials/mod.rs` (`json_to_material`).  
+
+Pour l'échantillonnage, vous devez choisir aléatoirement un des matériaux et générer une direction proportionnellement à celui-ci. **Cependant, vous ne pouvez pas générer de nombres aléatoires additionnels pour effectuer cette décision supplémentaire.** Une solution consiste à réutiliser un des nombres aléatoires pour choisir le lobe et échantillonner la direction (similaire aux "rescaling" dans l'échantillonnage hiérarchique). Voici un pseudo-code :  
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python
+# Pseudo code pour échantillonnage hiérarchique
+# "sample" est la variable aléatoire 2D
+# "prob" est la probabilité discrète de choisir matA
+def sample_blend(matA, matB, prob, sample):
+    if sample.x < prob:
+        # Rescale le nombre aléatoire 
+        sample.x = sample.x / prob 
+        return matA(sample)
+    else:
+        # Probabilité d'échantillonner matB: (1-prob)
+        sample.x = (sample.x - prob) / (1-prob)
+        return matB(sample)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!!! ERROR: Composante spéculaire
+    Ce type de matériaux (multilobe) sera considéré comme spéculaire si un des matériaux composants est spéculaire. Cela signifie qu'il faut renvoyer une valeur de 0 à la PDF et noir à l'évaluation du matériau. Cette restriction pourra être retirée (voir tâche bonus). N'oubliez pas de mettre en œuvre la méthode `have_delta` pour le matériau `blend`.  
+
+!!! WARN: Utilisation de la mixture
+    Si le matériau ne possède pas de composante spéculaire (delta), il faut **évaluer la mixture**. Cela signifie :  
+    - évaluer la mixture des BRDFs (via la méthode `evaluate`)  
+    - évaluer la mixture des densités de probabilité (via la méthode `pdf`)  
+
+    Vous devez toujours sélectionner aléatoirement un des matériaux et appeler sa méthode `sample` pour générer la direction $\vec{\omega_i}$.  
+
+### Matériau émissif
+
+Veuillez modifier le matériau `DiffuseEmit` défini dans `include/materials/diffuse_emitter.h`todo pour retourner `true` à la méthode `have_emission`. Retournez `pdf` à 0 et `evaluate` à noir pour ce matériau, car on ne peut pas rebondir sur une source de lumière.  
+
+## Tâche 4 : Stratégie `ENaive` (10 pts)
+
+Mettez en œuvre la stratégie `ENaive` qui échantillonne une direction de façon uniforme sur un hémisphère. Pour ce faire, utilisez les méthodes `sample_hemisphere` et `pdf_hemisphere` que vous avez codées dans la tâche 2.  
+
+Les principales étapes de cette stratégie sont :  
+1. Si le matériau est spéculaire, effectuez le même calcul que dans la tâche 1 (e.g., utilisez la valeur du poids généré par la méthode `sample`).  
+2. Sinon, générez une direction avec `sample_hemisphere` et évaluez le matériau (et son cosinus) avec `evaluate`. N'oubliez pas de diviser par la densité de probabilité.  
+
+Comparez le résultat de cette stratégie d'échantillonnage avec la technique `EBSDF` dans la scène `04_all-materials.json` contenant une variété de matériaux. Vous pouvez utiliser l'argument `-a` de `render.exe` pour changer la stratégie d'échantillonnage. Le bruit par rapport à `EBSDF` devrait être significativement plus important. Utilisez `TEV` pour vérifier l'absence de biais dans votre image produite. Si vous détectez un problème, ouvrez le fichier de scène et identifiez les matériaux problématiques, puis corrigez-les.  
+
+!!! INFO: Motivation
+    La motivation de cette stratégie d'échantillonnage est de montrer qu'il est facile d'implémenter des modèles de BSDF sans leur échantillonnage. Cependant, cette stratégie est très inefficace, car la densité de probabilité est très différente de la distribution d'échantillonnage. Cela provoque une grande variance dans l'estimation de l'éclairage direct. Mais cette technique est très utile pour valider votre mise en œuvre de nouveaux matériaux.
+
+## Tâche 6 : Matériau de Phong (10 pts)
+
+Ajoutez un matériau correspondant au modèle de matériau de type **Phong**, qui sera une mixture d'un matériau **diffus** et d'un lobe de **Phong**. Pour la formulation et son échantillonnage, référez-vous aux diapositives du cours. Ce matériau devra être construit avec les spécifications JSON suivantes (ici avec les valeurs par défaut) :
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ json
+{
+  "type": "phong",
+  "name": "glossy2",     // ignorer cette variable
+  "exponent": 30.0,      // Puissance du cosinus utilisé
+                         // doit être supérieure à 1.0
+  "ks" : [0.8, 0.8, 0.8] // Couleur du lobe de Phong
+  "kd" : [0.2, 0.2, 0.2] // Couleur du matériau diffus
+                         // Rappel: kd + ks <= 1.0
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pour votre mixture, la probabilité de choisir le lobe de Phong est :
+\begin{equation}
+    p(\text{phong}) = \frac{\operatorname{lum}(\mathbf{k_s})}{\operatorname{lum}(\mathbf{k_s}) + \operatorname{lum}(\mathbf{k_d})}
+\end{equation}
+où $\operatorname{lum}$ est la luminance de la couleur.
+
+Testez votre mise en œuvre de ce matériau avec le code de `test` ou en effectuant le rendu des scènes `04_phong1.json` et `04_phong2.json`. La scène `04_phong1` n'utilise pas de couleur diffuse (`kd = 0.0`) et vous permet de visualiser uniquement la contribution du lobe de Phong. 
+
+![`phong1.json`](../scenes/devoir2/05_phong1-path.png height=180 border="1")
+
+!!! WARN: Attention
+    Une erreur courante est de ne pas vérifier les valeurs des cosinus calculées. Dans certains cas, une valeur négative peut engendrer des NaN ou des valeurs infinies.
+
+## Tâche bonus (10 pts max)
+
+!!! WARN: Attention
+    Les points bonus seront uniquement crédités si les autres tâches du devoir ont été implémentées. Notez que certaines de ces tâches n'ont pas été vues en cours et peuvent prendre un temps significatif à développer. Ces tâches servent uniquement à aller plus loin.
+
+### Autres modèles de matériaux (jusqu'à 10 pts)
+
+Ajoutez de nouveaux modèles de matériaux à votre moteur de rendu. Par exemple, modifiez la mise en œuvre du matériau de Phong pour permettre d'utiliser le modèle de **Blinn-Phong**. Utilisez un flag dans le fichier JSON pour choisir le modèle à utiliser. En fonction de la complexité du modèle, vous pouvez obtenir jusqu'à **10 points** bonus. Pour **Blinn-Phong**, vous pouvez obtenir **3 points** bonus.
+
+Vous pouvez aussi implémenter d'autres modèles de matériaux composites (e.g., additif, multiplicatif, …). Pour l'inspiration, vous pouvez consulter les matériaux disponibles dans [Blender](https://docs.blender.org/manual/en/latest/render/shader_nodes/shader/index.html).
+
+# Soumettre votre devoir
+
+Créez une archive contenant :
+- tous les fichiers des dossiers `include`, `devoirs` et `src` ;
+- toutes les images que vous avez générées pour ce devoir (en **OpenEXR**) ;
+- un fichier PDF regroupant vos réponses aux questions du devoir (pouvant inclure des images) — si nécessaire.
+
+Soumettez cette archive sur Moodle. Attention à la date limite : la deadline est mentionnée sur Moodle.
+
+<!-- Markdeep: -->
+<style class="fallback">
+    body {
+        visibility: hidden
+    }
+</style>
+<script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script> 

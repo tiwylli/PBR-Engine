@@ -1,0 +1,62 @@
+{
+  "paths": ["../assets"],
+  "camera": {
+    "transform": {
+      "o": [0.0, 0, 5.0]
+    },
+    "vfov": 40,
+    "fdist": 6,
+    "resolution": [1024, 1024]
+  },
+  "sampler": {
+    "type": "independent",
+    "samples": 128
+  },
+  "background": [0.1, 0.1, 0.1],
+  "accelerator": {
+    "type": "bvh"
+  },
+  "materials": [
+    {
+      "type": "diffuse_light",
+      "name": "sun",
+      "radiance": {
+        "type": "texture",
+        "filename": "sun.jpg",
+        "scale": 2.0
+      }
+    },
+    {
+      "type": "diffuse",
+      "name": "white",
+      "albedo": {
+        "type": "texture",
+        "filename": "uv-texture.png",
+        "uv_scale": [20, 20],
+        "uv_offset": [5, 5]
+      }
+    }
+  ],
+  "shapes": [
+    {
+      "type": "sphere",
+      "material": "sun",
+      "radius": 1,
+      "transform": {
+        "axis": [1, 1, 0],
+        "angle": -30
+      }
+    },
+    {
+      "type": "quad",
+      "transform": {
+        "o": [0, -1, 0],
+        "x": [1, 0, 0],
+        "y": [0, 0, -1],
+        "z": [0, 1, 0]
+      },
+      "size": 100,
+      "material": "white"
+    }
+  ]
+}

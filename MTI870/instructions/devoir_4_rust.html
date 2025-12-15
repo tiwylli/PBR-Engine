@@ -1,0 +1,290 @@
+<meta charset="utf-8" emacsmode="-*- markdown -*-">
+
+<title>MTI870 - Devoir 4 - Textures et scènes - Version 1.04</title>
+**MTI870 - Devoir 4 - Version 1.05 (Rust)**
+
+# Objectifs du devoir 
+
+- Mettre en œuvre le calcul des coordonnées UV.
+- Utiliser des textures simples (constante, image, procédurale).
+- Se familiariser avec le processus de génération de scène 3D pour votre projet final.
+
+# Mettre à jour votre code
+
+## Instructions
+
+Premièrement, **veuillez valider (commit) tous vos changements et “push” ces changements sur GitHub, afin de vous assurer de ne pas perdre votre travail en cas de mauvaise manipulation.**
+
+## Changements 
+
+Les changements pour le devoir 4 sont principalement majeurs, car ils incluent une structure accélératrice et une nouvelle forme : les triangles. Voici la liste des modifications effectuées :
+- Ajout de la structure accélératrice : BVH.
+- Ajout d'une classe `AABB` (`aabb.h`) pour le calcul du volume englobant des formes et le calcul des AABB pour les différentes formes.
+- Ajout du code squelette pour les textures (Tâche 4).
+
+Si vous avez des questions par rapport à ce code de base, n'hésitez pas à me contacter.
+
+# Devoir (100 pts)
+
+Ce devoir se concentre sur certains aspects techniques qui vous seront utiles pour le projet. Par exemple, la mise en œuvre de textures permettant de moduler l'apparence des objets. Il introduit également les structures accélératrices, qui offrent de meilleurs temps de rendu pour des scènes complexes. Ces fonctionnalités pourront faire l'objet d'extensions dans le projet final. Plusieurs idées en ce sens sont proposées dans la section "Tâche Bonus".
+
+## Tâche 1 : Comparaison des structures accélératrices (20 pts)
+
+Calculez le temps de rendu et le ratio intersections/rayons pour les scènes suivantes :
+- `02_classic.json`
+- `02_spaceship.json`
+- `02_cornelbox.json`
+
+en suivant différentes configurations de la structure accélératrice BVH. Analysez les stratégies gagnantes en fonction du nombre d'échantillons par pixel ainsi que de la complexité de la scène. Veuillez inclure votre analyse dans le rapport.
+
+Effectuez le rendu avec les différentes options de la structure accélératrice :
+- avec différentes stratégies (`sah`, `spatial`, `median`). La première correspond à l'utilisation d'un sweep SAH pour construire un BVH optimisé. La seconde coupe au milieu de l'axe choisi, et la troisième coupe de manière à obtenir un nombre égal d'objets de chaque côté.
+- Les deux dernières stratégies peuvent utiliser les sélections d'axes suivantes (`longest`, `roundrobin`, `random`).
+
+## Tâche 2 : Coordonnées UV (20 pts) 
+
+### Mise en œuvre des coordonnées UV (17 pts)
+
+La première étape est de modifier l'intersection pour stocker les coordonnées UV (du point d'intersection). 
+Pour ce faire, modifiez `Intersection` dans `src/shapes/mod.rs` et ajoutez un attribut `uv`:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+/// Object describing an intersection
+pub struct Intersection<'a> {
+    /// Intersection distance
+    pub t: f64,
+    /// Intersection point
+    pub p: Point3,
+    /// Surface normal
+    pub n: Vec3,
+    /// Texture coordinates
+    pub uv: Vec2, // nouvel attribut!
+    /// Material at the intersection point
+    pub material: &'a dyn Material,
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Il faudra ensuite aller dans les différentes formes pour renseigner une valeur dans les intersections produites. 
+Mettez en œuvre ces calculs pour les formes suivantes :
+- `Quad` : utilisez les formules du cours.
+- `Sphere` : utilisez les formules du cours.
+- `Triangle` : s'il y a des coordonnées de texture par sommet, faites l'interpolation barycentrique. Sinon, utilisez les coordonnées par défaut vues en cours (définies de façon fixe par sommet).
+
+!!! WARN: Attention
+    Les coordonnées UV ne subissent pas de transformation, contrairement à la position ou à la normale de l'intersection. 
+
+### Validation des coordonnées UV (3 pts)
+
+Créez un nouvel intégrateur `uv` pour afficher les coordonnées UV. Vous pouvez partir de l'intégrateur `normal` (en le copiant) et modifier la fonction `Li` pour afficher les coordonnées UV. Assurez-vous d'avoir des coordonnées UV comprises entre 0 et 1. Pour cela, utilisez la fonction `modulo` fournie dans le fichier définissant les textures. Des références pour certaines scènes sont disponibles dans le dossier `scenes/devoir4` (sous le nom `ref-01_XXX`). Pour effectuer le rendu, vous pouvez utiliser l'argument `-a ./scenes/uv.json` ou `-a ./scenes/uv_bvh.json` de `render`. 
+
+!!! WARN: Attention
+    Après avoir créé votre nouveau fichier, vous devez :
+    - Éditer le fichier `src/integrators/mod.rs` et ajouter ce nouvel intégrateur dans la fonction `json_to_integrator`. Vous devez aussi ajouter `pub mod uv`.
+
+![`03_uv.json`](../scenes/devoir4/ref-03_uv.png border="1") ![`03_living-room-uv.json`](../scenes/devoir4/ref-03_living-room-uv.png width=78%  border="1")
+
+## Tâche 3 : Textures (30 pts)
+
+### Mise en œuvre des textures (20 pts)
+
+Nous allons maintenant mettre en œuvre 3 textures différentes :
+- `constant` : une texture avec une couleur constante ;
+- `texture` : une texture composée d'une image (répétition des coordonnées UV) ;
+- `checkerboard2d` : une texture procédurale en forme d'échiquier (répétition des coordonnées UV) ;
+- `checkerboard3d` : une texture procédurale en forme d'échiquier (position de l'intersection).
+
+Ces différentes textures doivent être mises en œuvre dans `src/textures/mod.rs`. Notez qu'ici, nous utilisons un `enum` pour former une union de types. Vous pouvez utiliser l'instruction `match` pour appeler la bonne fonction. Implémentez toutes les fonctions `eval` pour chaque type de texture.
+
+Les spécifications des différents types de textures sous forme JSON vous sont présentées ci-dessous. Les entrées"A", "B", "C", ... sont des exemples de noms de texture. Dans une utilisation normale, ces noms seraient des attributs des matériaux.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ json
+{
+    "A" : [0.5, 0.5, 0.5], // texture `constante`
+    "B" : "texture.png",   // texture `texture`
+    "C" : { // texture `constante`
+        "type" : "constant",
+        "value" : [0.5, 0.5, 0.5]
+    },
+    "D" : { // texture `texture`
+        "type" : "texture",
+        "filename" : "texture.png",
+        "gamma" : false, // désactive la correction gamma (default: true)
+        "uv_offset" : [0.0, 0.0], // translation des coordonnées UV
+        "uv_scale" : [1.0, 1.0], // mise à l'échelle des coordonnées UV
+        "scale" : 1.0 // multiplication des valeurs des pixels
+        "vflip" : true // inverse l'image verticalement (default: true)
+    },
+    "E" : { // texture `checkerboard2d`
+        "type" : "checkerboard2d",
+        "color1" : [0.2, 0.2, 0.2],
+        "color2" : [0.8, 0.8, 0.8],
+        "uv_scale" : [1.0, 1.0],
+        "uv_offset" : [0.0, 0.0]
+    },
+    "F" : { // texture `checkerboard3d`
+        "type" : "checkerboard3d",
+        "color1" : [0.2, 0.2, 0.2],
+        "color2" : [0.8, 0.8, 0.8],
+        "transform" : [
+            // ... transformations 3D ...
+        ]
+    }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!!! WARN: Attention
+    On s'attend à l'utilisation d'un filtrage **bilinéaire** pour `ImageTexture`. Par ailleurs, les objets `ImageTexture`, `CheckerboardTexture2D` et `CheckerboardTexture3D` comportent des attributs. 
+    
+    Pour rappel, dans le cas des textures utilisant les coordonnées UV, elles se calculent de la manière suivante :
+    `uv' = uv * uv_scale + uv_offset_u`.
+
+    Pour la texture `CheckerboardTexture3D`, la position utilisée doit être transformée par la matrice `transform` avant d'être employée pour calculer la texture.
+
+!!! ERROR: Attention
+    Des imprécisions numériques peuvent produire des indices invalides lors de la lecture du pixel d'une image (indices trop grands). Utilisez `modulo` et `std::min` pour vous assurer d'avoir toujours des coordonnées UV valides. 
+
+Vous ne pouvez pas encore tester vos implémentations, car aucun de vos matériaux n'utilise de textures. Cela sera fait dans la tâche suivante. À noter que les exemples utilisent principalement des textures `diffuse`.
+
+### Matériaux (15 pts) 
+
+Il est attendu que la plupart des matériaux puissent utiliser des textures pour définir leurs propriétés. Par exemple, la couleur diffuse d'un matériau peut être définie par une texture, ou bien l'émission d'une source lumineuse peut être définie par une texture. Ci-dessous, des instructions pour modifier vos matériaux afin qu'ils utilisent des textures.
+
+Modifiez la signature des méthodes suivantes dans `Material` afin de prendre en compte les coordonnées UV et la position de l'intersection (`src/materials/mod.rs`) :
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub trait Material: Send + Sync {
+    // Function to generate a sample from the material
+    fn sample(&self, wo: &Vec3, uv: &Vec2, p: &Point3, s: &mut Sampler) -> Option<SampledDirection>;
+    // Function if the material emit light
+    fn emission(&self, wo: &Vec3, uv: &Vec2, p: &Point3) -> Color3;
+    // veuillez aussi modifier les méthodes pdf, evaluate, ...  
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Vous devez aller dans les différents matériaux pour changer la signature et inclure désormais les coordonnées `uv` en paramètre. Ensuite, essayez de compiler et corrigez les erreurs de compilation (certaines parties de votre code appellent ces méthodes). Pour chaque matériau, modifiez ensuite le type en `Texture<Color3>` ou `Texture<double>`. Vous disposez des fonctions suivantes pour créer des textures : 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub fn json_to_texture(json: &HashMap<String, JsonValue>, name: &str, default: f64) -> Texture<Color3>;
+pub fn json_to_texture_float(json: &HashMap<String, JsonValue>, name: &str, default: f64) -> Texture<f64>;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+L'objet JSON à fournir est celui passé en paramètre du constructeur de chaque matériau. La fonction `eval` vous permet d'évaluer la texture aux coordonnées souhaitées. Voici un exemple d'une classe de matériau fictive :
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub struct MonSuperMateriau {
+    value: Texture<Color3>
+}
+
+impl MonSuperMateriau {
+    pub fn new(param: &HashMap<String, JsonValue>) -> MonSuperMateriau {
+        MonSuperMateriau {
+            value: json_to_texture(param, "value", Color3::new(0.5))
+        }
+    }
+}
+
+impl Material for MonSuperMateriau {
+    fn sample(&self, wo: &Vec3, uv: &Vec2, p: &Point3, s: &mut dyn crate::samplers::Sampler) -> Option<SampledDirection> {
+        Some(SampledDirection {
+            d: self.m_value.eval(uv, p),
+            wi: une_transformation(d_in)
+        })
+    }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Après avoir appliqué la modification sur tous les attributs des différents matériaux, vous pourrez tester votre mise en œuvre. Effectuez le rendu des scènes suivantes : `02_test-checkerboards2D.json`, `02_test-checkerboards3D.json`, `02_test-textures.json`, `02_living-room.json`, et `04_treasure-chess-diffuse.json`.
+
+![`04_test-checkerboards.json`](../scenes/devoir4/ref-04_test-checkerboards.png width=95% border="1") ![`04_test-checkerboards_3d.json`](../scenes/devoir4/ref-04_test-checkerboards_3d.png width=95% border="1")
+![`04_treasure-chess-diffuse.json`](../scenes/devoir4/ref-04_treasure-chess-diffuse.png border="1") ![`04_test-textures.json`](../scenes/devoir4/ref-04_test-textures.png width=90% border="1")
+<center>![`05_treasure-chess-blend.json`](../scenes/devoir4/ref-05_treasure-chess-blend.png width=60% border="1")</center>
+![`05_fresnel-blend.json`](../scenes/devoir4/ref-05_fresnel-blend.png border="1")
+
+![`04_living-room.json`](../scenes/devoir4/ref-04_living-room-512spp.png border="1")
+
+## Tâche 6 : Première itération du projet (30 pts)
+
+La dernière tâche de ce devoir consiste à ce que vous créiez une scène intéressante pour votre projet final. Une seule scène est attendue par équipe. Une liste de ressources est disponible sur Moodle, ainsi que des explications sur la procédure d'export de Blender vers votre format de scène. Visez une scène **complète** (p. ex., la plupart des objets présents, potentiellement texturés) avec les matériaux de base. 
+
+Cette scène vous permettra de démontrer l'impact des fonctionnalités additionnelles que vous mettrez en œuvre dans le cadre de votre projet final. 
+
+## Tâche Bonus (10 pts max — bonus)
+
+Vous pouvez aussi utiliser ces fonctionnalités bonus comme lignes directrices pour le projet final. 
+
+!!! WARN: Attention
+    Les points bonus seront crédités uniquement si les autres tâches du devoir ont été implémentées. Notez que certaines de ces tâches n'ont pas été vues en cours et peuvent demander un temps significatif. Elles visent uniquement à aller plus loin.
+
+### Perlin (10 pts)
+
+Mettez en œuvre une nouvelle texture procédurale utilisant le bruit de Perlin. Vous pouvez utiliser la [section 5](https://raytracing.github.io/books/RayTracingTheNextWeek.html#perlinnoise) de *Ray Tracing: The Next Week* pour vous guider. Créez une scène démontrant votre mise en œuvre et ajoutez l'image et la scène à votre archive. 
+
+### Bump map ou Normal map (10 pts)
+
+Mettez en œuvre l'approche *bump map* ou *normal map*.  
+Créez une scène démontrant votre mise en œuvre et ajoutez l'image et la scène à votre archive.  
+Notez que cela peut être une fonctionnalité intéressante pour le projet. 
+
+!!! WARN: Changement de repère
+    Comme vu en cours, ces techniques de perturbation nécessitent l'information d'orientation du repère local. Vous devez donc mettre en place le calcul des **tangentes** et **binormales** pour chaque intersection, afin de reconstruire le repère local et d'effectuer la transformation des directions. Cette transformation est nécessaire lors de l'échantillonnage des directions dans les matériaux.
+
+    Cela implique de modifier chaque méthode d'intersection pour ajouter les tangentes. Pour les triangles, ces informations seront **pré-calculées** en fonction de la présence (ou non) des coordonnées UV. Pour vous guider dans la mise en œuvre des tangentes pour un maillage, vous pouvez utiliser la ressource suivante : https://marti.works/posts/post-calculating-tangents-for-your-mesh/post/. Si ces données ne sont pas présentes, vous pouvez spécifier des tangentes arbitraires (via des produits en croix).
+
+### Amélioration BVH (5 pts)
+
+Mettez en œuvre **une** des améliorations suivantes (vous pouvez en réaliser plusieurs ; elles seront évaluées indépendamment) :
+- Parallélisation de la construction du BVH (difficile avec le code actuel!).
+- SAH binning et découpage des *bounding boxes* (SBVH).
+- Utilisation du SIMD. 
+
+À chaque fois, analysez les gains en temps de calcul et/ou en ratio **intersections/rayons** obtenus pour différentes scènes. Écrivez cette analyse dans votre rapport.
+
+### Instancing (5 pts)
+
+Modifiez la classe `Scene` pour stocker une table de correspondance entre un nom (`std::string`) et un groupe d'objets. Créez une nouvelle entrée dans les scènes pour spécifier la liste des groupes. Vous pourrez ensuite utiliser le nom du groupe pour créer une instance. Voici un exemple de structure dans un fichier de scène :
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ json
+{
+    "groups" : [
+        {
+            "name" : "groupe_1",
+            "shapes" : [
+                {
+                    "type" : "sphere"
+                },
+                //...
+            ]
+        },
+        // ...
+    ],
+    // ...
+    "shapes" : [
+        {
+            "type" : "instance",
+            "name" : "groupe_1",
+            "transform" : {
+                // ...
+            }
+        },
+        // ..
+    ],
+    // ..
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+Vous pouvez ensuite suivre la [section 8](https://raytracing.github.io/books/RayTracingTheNextWeek.html#instances) de *Ray Tracing: The Next Week*. Notez que vous pouvez réutiliser les transformations comme dans la classe `Sphere`. Enfin, créez deux versions d'une scène : une version **sans** instances (où l'objet est répété plusieurs fois) et une version **avec** instances. Ajoutez au rapport l'image obtenue et comparez les temps de **chargement** de la scène, de **construction du BVH**, et de **rendu**. Mentionnez le ratio **intersections/rayons**.   
+
+### Motion blur (10 pts)
+
+Mettez en œuvre le flou de mouvement (*motion blur*) en suivant la [section 2](https://raytracing.github.io/books/RayTracingTheNextWeek.html#motionblur) de *Ray Tracing: The Next Week*. Pour modéliser le mouvement, implémentez une nouvelle classe de transformation qui interpole deux transformations en fonction du temps associé au rayon. Vous pouvez aussi consulter le [chapitre 2.9](https://www.pbr-book.org/3ed-2018/Geometry_and_Transformations/Animating_Transformations) de PBRT pour vous guider dans cette mise en œuvre. Modifiez une scène et démontrez le bon fonctionnement de cette fonctionnalité.
+
+## Soumettre votre devoir
+
+Créez une archive contenant :
+- tous les fichiers des dossiers `src` et `example`
+- toutes les images que vous avez générées pour ce devoir ;
+- un fichier PDF contenant vos réponses (et images, si nécessaire).
+
+Soumettez cette archive sur Moodle. **Attention à la deadline** : elle est indiquée sur Moodle.
+
+
+<!-- Markdeep: -->
+<style class="fallback">
+    body {
+        visibility: hidden
+    }
+</style>
+<script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script> 

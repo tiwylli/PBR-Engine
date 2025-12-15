@@ -1,0 +1,290 @@
+<meta charset="utf-8" emacsmode="-*- markdown -*-">
+
+<title>SDE885 - Assignment 4 - Textures and scenes - Version 1.04</title>
+**SDE885 - Assignment 4 - Version 1.05 (Rust)**
+
+# Assignment Objectives
+
+- Implement the computation of UV coordinates.
+- Use simple textures (constant, image-based, procedural).
+- Become familiar with the 3D scene generation process for your final project.
+
+# Update Your Code
+
+## Instructions
+
+First, **make sure to commit all your current changes and push them to GitHub to avoid losing your work in case of any mishandling.**
+
+## Changes
+
+The changes for Assignment 4 are mainly significant, as they include an acceleration structure and a new shape: triangles. Here is the list of modifications made:
+- Added an acceleration structure: BVH.
+- Added a class `AABB` (`aabb.h`) for computing bounding volumes for shapes and calculating AABBs for different primitives.
+- Added the skeleton code for textures (Task 4).
+
+If you have any questions regarding this base code, do not hesitate to contact me.
+
+# Assignment (100 pts)
+
+This assignment focuses on technical aspects that will be useful for your project. For example, implementing textures to modulate the appearance of objects. It also introduces acceleration structures that provide faster rendering times for complex scenes. These features may serve as extensions for your final project. Several ideas in this direction are proposed in the "Bonus Task" section.
+
+## Task 1: Comparison of Acceleration Structures (20 pts)
+
+Compute the rendering time and the intersection/ray ratio for the following scenes:
+- `02_classic.json`
+- `02_spaceship.json`
+- `02_cornelbox.json`
+
+using different BVH acceleration structure configurations. Analyze which strategies perform best depending on the number of samples per pixel and the complexity of the scene. Include your analysis in the report.
+
+Perform the rendering with different BVH options:
+- Using different strategies (`sah`, `spatial`, `median`). The first corresponds to using sweep SAH to build an optimized BVH. The second splits at the middle of the chosen axis, and the third splits to obtain an equal number of objects on each side.
+- The last two strategies can use the following axis selection methods: (`longest`, `roundrobin`, `random`).
+
+## Task 2: UV Coordinates (20 pts)
+
+### Implementation of UV Coordinates (17 pts)
+
+The first step is to modify the intersection structure to store the UV coordinates (of the intersection point).
+To do this, modify `Intersection` in `src/shapes/mod.rs` and add a `uv` attribute:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+/// Object describing an intersection
+pub struct Intersection<'a> {
+    /// Intersection distance
+    pub t: f64,
+    /// Intersection point
+    pub p: Point3,
+    /// Surface normal
+    pub n: Vec3,
+    /// Texture coordinates
+    pub uv: Vec2, // new attribute!
+    /// Material at the intersection point
+    pub material: &'a dyn Material,
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You will then need to update each shape to assign a value to the UV coordinates in the intersection.  
+Implement these computations for the following shapes:
+- `Quad`: use the formulas from the lecture.
+- `Sphere`: use the formulas from the lecture.
+- `Triangle`: if texture coordinates are defined per vertex, perform barycentric interpolation. Otherwise, use the default coordinates as seen in class (defined per vertex).
+
+!!! WARN: Attention
+    UV coordinates are **not transformed**, unlike the position or the normal of the intersection.
+
+### UV Coordinate Validation (3 pts)
+
+Create a new `uv` integrator to display the UV coordinates. You can start from the `normal` integrator (by copying it) and modify the `Li` function to output the UV coordinates. Make sure that the UV coordinates remain between 0 and 1. To achieve this, use the `modulo` function provided in the texture definition file. References for some scenes are available in the folder `scenes/devoir4` (under the name `ref-01_XXX`). To render, you can use the command-line argument `-a ./scenes/uv.json` or `-a ./scenes/uv_bvh.json` with `render`. 
+
+!!! WARN: Attention
+    After creating your new file, you must:
+    - Edit the file `src/integrators/mod.rs` and add this new integrator in the `json_to_integrator` function. You must also add `pub mod uv`.
+
+![`03_uv.json`](../scenes/devoir4/ref-03_uv.png border="1") ![`03_living-room-uv.json`](../scenes/devoir4/ref-03_living-room-uv.png width=78% border="1")
+
+## Task 3: Textures (30 pts)
+
+### Texture Implementation (20 pts)
+
+We will now implement three different textures:
+- `constant`: a texture with a constant color;
+- `texture`: a texture based on an image (UV coordinate repetition);
+- `checkerboard2d`: a procedural checkerboard texture (UV coordinate repetition);
+- `checkerboard3d`: a procedural checkerboard texture based on the intersection position.
+
+These textures must be implemented in `src/textures/mod.rs`. Note that here, we use an `enum` to form a type union. You can use the `match` expression to call the appropriate function. Implement all `eval` functions for each texture type.
+
+The specifications for the different texture types in JSON format are presented below. The entries "A", "B", "C", ... are examples of texture names. In a typical use case, these names would correspond to material attributes.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ json
+{
+    "A" : [0.5, 0.5, 0.5], // `constant` texture
+    "B" : "texture.png",   // `texture` texture
+    "C" : { // `constant` texture
+        "type" : "constant",
+        "value" : [0.5, 0.5, 0.5]
+    },
+    "D" : { // `texture` texture
+        "type" : "texture",
+        "filename" : "texture.png",
+        "gamma" : false, // disables gamma correction (default: true)
+        "uv_offset" : [0.0, 0.0], // UV translation
+        "uv_scale" : [1.0, 1.0], // UV scaling
+        "scale" : 1.0 // multiplies pixel values
+        "vflip" : true // flips the image vertically (default: true)
+    },
+    "E" : { // `checkerboard2d` texture
+        "type" : "checkerboard2d",
+        "color1" : [0.2, 0.2, 0.2],
+        "color2" : [0.8, 0.8, 0.8],
+        "uv_scale" : [1.0, 1.0],
+        "uv_offset" : [0.0, 0.0]
+    },
+    "F" : { // `checkerboard3d` texture
+        "type" : "checkerboard3d",
+        "color1" : [0.2, 0.2, 0.2],
+        "color2" : [0.8, 0.8, 0.8],
+        "transform" : [
+            // ... 3D transformations ...
+        ]
+    }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!!! WARN: Attention
+    You are expected to use **bilinear filtering** for `ImageTexture`. Moreover, the `ImageTexture`, `CheckerboardTexture2D`, and `CheckerboardTexture3D` objects include several attributes. 
+    
+    Recall that for textures using UV coordinates, they are computed as follows:
+    `uv' = uv * uv_scale + uv_offset_u`.
+
+    For the `CheckerboardTexture3D`, the position used must first be transformed by the `transform` matrix before being evaluated for the texture.
+
+!!! ERROR: Attention
+    Numerical precision errors may produce invalid indices when reading image pixels (indices too large). Use `modulo` and `std::min` to ensure UV coordinates remain valid. 
+
+You cannot test your implementation yet because no materials use textures at this point. This will be done in the next task. Note that the examples primarily use `diffuse` textures.
+
+### Materials (15 pts)
+
+Most materials are expected to support textures to define their properties. For instance, a material’s diffuse color may be defined by a texture, or a light source’s emission may be defined by a texture. The following provides instructions on how to modify your materials to use textures.
+
+Modify the signatures of the following methods in `Material` to include UV coordinates and the intersection position (`src/materials/mod.rs`):
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub trait Material: Send + Sync {
+    // Function to generate a sample from the material
+    fn sample(&self, wo: &Vec3, uv: &Vec2, p: &Point3, s: &mut Sampler) -> Option<SampledDirection>;
+    // Function if the material emits light
+    fn emission(&self, wo: &Vec3, uv: &Vec2, p: &Point3) -> Color3;
+    // also modify the pdf, evaluate, ... methods  
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must go through the different materials and update the method signatures to now include the `uv` coordinates as parameters. Then, try compiling and fix the compilation errors (some parts of your code call these methods). For each material, update the corresponding type to `Texture<Color3>` or `Texture<double>`. You can use the following functions to create textures: 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub fn json_to_texture(json: &HashMap<String, JsonValue>, name: &str, default: f64) -> Texture<Color3>;
+pub fn json_to_texture_float(json: &HashMap<String, JsonValue>, name: &str, default: f64) -> Texture<f64>;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The JSON object to provide is the one passed to each material’s constructor. The `eval` function lets you evaluate the texture at the desired coordinates. Here is an example of a simple fictitious material class:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub struct MyAwesomeMaterial {
+    value: Texture<Color3>
+}
+
+impl MyAwesomeMaterial {
+    pub fn new(param: &HashMap<String, JsonValue>) -> MyAwesomeMaterial {
+        MyAwesomeMaterial {
+            value: json_to_texture(param, "value", Color3::new(0.5))
+        }
+    }
+}
+
+impl Material for MyAwesomeMaterial {
+    fn sample(&self, wo: &Vec3, uv: &Vec2, p: &Point3, s: &mut dyn crate::samplers::Sampler) -> Option<SampledDirection> {
+        Some(SampledDirection {
+            d: self.m_value.eval(uv, p),
+            wi: transform_direction(d_in)
+        })
+    }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After applying these modifications to all material attributes, you will be able to test your implementation. Render the following scenes: `02_test-checkerboards2D.json`, `02_test-checkerboards3D.json`, `02_test-textures.json`, `02_living-room.json`, and `04_treasure-chess-diffuse.json`.
+
+![`04_test-checkerboards.json`](../scenes/devoir4/ref-04_test-checkerboards.png width=95% border="1") ![`04_test-checkerboards_3d.json`](../scenes/devoir4/ref-04_test-checkerboards_3d.png width=95% border="1")
+![`04_treasure-chess-diffuse.json`](../scenes/devoir4/ref-04_treasure-chess-diffuse.png border="1") ![`04_test-textures.json`](../scenes/devoir4/ref-04_test-textures.png width=90% border="1")
+<center>![`05_treasure-chess-blend.json`](../scenes/devoir4/ref-05_treasure-chess-blend.png width=60% border="1")</center>
+![`05_fresnel-blend.json`](../scenes/devoir4/ref-05_fresnel-blend.png border="1")
+
+![`04_living-room.json`](../scenes/devoir4/ref-04_living-room-512spp.png border="1")
+
+## Task 6: First Project Iteration (30 pts)
+
+The final task of this assignment is for you to create an interesting scene for your final project. Only one scene is expected per team. A list of resources is available on Moodle, along with explanations on how to export from Blender to your scene format. Aim for a **complete** scene (e.g., most objects present, potentially textured) with basic materials. 
+
+This scene will allow you to demonstrate the impact of the additional features that you will implement as part of your final project. 
+
+## Bonus Task (10 pts max — bonus)
+
+You can also use these bonus features as guidelines for the final project. 
+
+!!! WARN: Attention
+    Bonus points will be awarded only if the other tasks in the assignment have been implemented. Note that some of these tasks were not covered in class and may require significant time. They are intended solely for going further.
+
+### Perlin (10 pts)
+
+Implement a new procedural texture using Perlin noise. You can use [Section 5](https://raytracing.github.io/books/RayTracingTheNextWeek.html#perlinnoise) of *Ray Tracing: The Next Week* as guidance. Create a scene showcasing your implementation and add the image and the scene to your archive. 
+
+### Bump Map or Normal Map (10 pts)
+
+Implement the *bump map* or *normal map* approach.  
+Create a scene showcasing your implementation and add the image and the scene to your archive.  
+Note that this can be an interesting feature for the project. 
+
+!!! WARN: Frame change
+    As discussed in class, these perturbation techniques require the orientation information of the local frame. You must therefore implement the computation of **tangents** and **binormals** for each intersection, in order to reconstruct the local frame and perform direction transforms. This transform is necessary when sampling directions in materials.
+
+    This implies modifying each intersection method to add tangents. For triangles, this information will be **precomputed** depending on whether UV coordinates are present or not. For guidance on implementing tangents for a mesh, you can use the following resource: https://marti.works/posts/post-calculating-tangents-for-your-mesh/post/. If this data is not present, you can specify arbitrary tangents (using cross products).
+
+### BVH Improvement (5 pts)
+
+Implement **one** of the following improvements (you may implement several; they will be evaluated independently):
+- Parallelization of BVH construction (difficult with the current code!).
+- SAH binning and *bounding box* splitting (SBVH).
+- Use of SIMD. 
+
+For each case, analyze the gains in computation time and/or **intersections/rays** ratio obtained for different scenes. Write this analysis in your report.
+
+### Instancing (5 pts)
+
+Modify the `Scene` class to store a lookup table between a name (`std::string`) and a group of objects. Create a new entry in scenes to specify the list of groups. You can then use the group name to create an instance. Here is an example structure in a scene file:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ json
+{
+    "groups" : [
+        {
+            "name" : "groupe_1",
+            "shapes" : [
+                {
+                    "type" : "sphere"
+                },
+                //...
+            ]
+        },
+        // ...
+    ],
+    // ...
+    "shapes" : [
+        {
+            "type" : "instance",
+            "name" : "groupe_1",
+            "transform" : {
+                // ...
+            }
+        },
+        // ..
+    ],
+    // ..
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+You can then follow [Section 8](https://raytracing.github.io/books/RayTracingTheNextWeek.html#instances) of *Ray Tracing: The Next Week*. Note that you can reuse transforms as in the `Sphere` class. Finally, create two versions of a scene: one **without** instances (where the object is repeated multiple times) and one **with** instances. Include in your report the resulting image and compare the **loading** time of the scene, the **BVH construction** time, and the **rendering** time. Mention the **intersections/rays** ratio.   
+
+### Motion Blur (10 pts)
+
+Implement motion blur by following [Section 2](https://raytracing.github.io/books/RayTracingTheNextWeek.html#motionblur) of *Ray Tracing: The Next Week*. To model motion, implement a new transform class that interpolates between two transforms based on the time associated with the ray. You can also consult [Chapter 2.9](https://www.pbr-book.org/3ed-2018/Geometry_and_Transformations/Animating_Transformations) of PBRT for guidance. Modify a scene and demonstrate that this feature works correctly.
+
+## Submit Your Assignment
+
+Create an archive containing:
+- all files from the `src` and `example` folders
+- all images you generated for this assignment;
+- a PDF file containing your answers (and images, if necessary).
+
+Submit this archive on Moodle. **Mind the deadline**: it is indicated on Moodle.
+
+
+<!-- Markdeep: -->
+<style class="fallback">
+    body {
+        visibility: hidden
+    }
+</style>
+<script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script> 

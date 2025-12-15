@@ -1,0 +1,184 @@
+{
+  "paths": ["../assets/"],
+  "camera": {
+    "transform": {
+      "from": [0.0, 1.0, -8.0],
+      "at": [0.0, 0.0, 0.0],
+      "up": [0, 1, 0]
+    },
+    "vfov": 75,
+    "fdist": 1.0,
+    "resolution": [1000, 1000]
+  },
+  "sampler": {
+    "type": "independent",
+    "samples": 64
+  },
+  "integrator": {
+    "type": "path"
+  },
+  "background": [0.1, 0.1, 0.1],
+  "materials": [
+    {
+      "type": "diffuse",
+      "name": "ground",
+      "albedo": [0.5, 0.5, 0.5]
+    },
+    {
+      "type": "metal",
+      "name": "sdf_mirror",
+      "roughness": 0.05,
+      "ks": [0.9, 0.95, 1.0]
+    },
+    {
+      "type": "diffuse",
+      "name": "red",
+      "albedo": [0.8, 0.1, 0.1]
+    },
+    {
+      "type": "diffuse",
+      "name": "green",
+      "albedo": [0.1, 0.8, 0.1]
+    },
+    {
+      "type": "diffuse",
+      "name": "blue",
+      "albedo": [0.1, 0.1, 0.8]
+    },
+    {
+      "type": "diffuse_light",
+      "name": "light",
+      "radiance": [15.0, 14.0, 13.0]
+    }
+  ],
+  "shapes": [
+    {
+      "type": "mesh",
+      "filename": "jedi_starfighter.obj",
+      "material": "red",
+      "transform": [
+        {
+          "scale": 0.01
+        },
+        {
+          "translate": [0.0, -1.5, 0.0]
+        },
+        {
+          "rotation": [0, 225, 0]
+        }
+      ]
+    }
+  ],
+  "sdf_objects": [
+    {
+      "name": "difference_demo",
+      "type": "sdf_difference",
+      "material": "blue",
+      "children": [
+        {
+          "type": "sdf_round_box",
+          "material": "green",
+          "half_extent": [10, 10, 10],
+          "radius": 0.35,
+          "bounds": {
+            "min": [-10.5, -10.5, -10.5],
+            "max": [10.5, 10.5, 10.5]
+          }
+        },
+        {
+          "type": "sdf_sphere",
+          "material": "red",
+          "radius": 10.0,
+          "bounds": {
+            "min": [-11, -11, -11],
+            "max": [11, 11, 11]
+          }
+        }
+      ],
+      "bounds": {
+        "min": [-10.5, -10.5, -10.5],
+        "max": [10.5, 10.5, 10.5]
+      },
+      "settings": {
+        "max_steps": 180,
+        "step_clamp": 0.9
+      }
+    },
+    {
+      "name": "light_source",
+      "type": "sdf_sphere",
+      "material": "light",
+      "radius": 0.5,
+      "transform": [
+        {
+          "translate": [2.0, 0.0, 0.0]
+        }
+      ],
+      "bounds": {
+        "min": [1.0, -1.5, -1.5],
+        "max": [3, 1.5, 1.5]
+      }
+    },
+    {
+      "name": "light_source",
+      "type": "sdf_sphere",
+      "material": "light",
+      "radius": 1,
+      "transform": [
+        {
+          "translate": [2.0, 3.0, -7.0]
+        }
+      ],
+      "bounds": {
+        "min": [1.0, 1.0, -9.0],
+        "max": [3, 5.0, -5.0]
+      }
+    },
+    {
+      "name": "sdf_mirror",
+      "type": "sdf_sphere",
+      "material": "sdf_mirror",
+      "radius": 3.0,
+      "transform": [
+        {
+          "translate": [1.5, 3.0, 3.0]
+        }
+      ],
+      "bounds": {
+        "min": [-2, -1, -1],
+        "max": [5, 7, 7]
+      }
+    },
+    {
+      "name": "greensphere",
+      "type": "sdf_sphere",
+      "material": "green",
+      "radius": 1.0,
+      "transform": [
+        {
+          "translate": [-1.5, -3.0, -3.0]
+        }
+      ],
+      "bounds": {
+        "min": [-3, -5, -5],
+        "max": [0, -1, -1]
+      }
+    },
+    {
+      "name": "ground_plane",
+      "type": "sdf_plane",
+      "material": "ground",
+      "normal": [0, 1, 0],
+      "offset": 0,
+      "transform": [
+        {
+          "translate": [0.0, -3.0, 0.0]
+        }
+      ],
+      "bounds": {
+        "min": [-20.0, -3.1, -20.0],
+        "max": [20.0, -1.0, 20.0]
+      }
+    }
+  ]
+}

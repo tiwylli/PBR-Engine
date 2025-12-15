@@ -1,0 +1,83 @@
+{
+  "camera": {
+    "transform": {
+      "from": [20, 20, 50],
+      "at": [0, 4, 0],
+      "up": [0, 1, 0]
+    },
+    "vfov": 20,
+    "fdist": 800,
+    "resolution": [768, 432]
+  },
+  "sampler": {
+    "type": "independent",
+    "samples": 64
+  },
+  "background": [0.0, 0, 0],
+  "accelerator": {
+    "type": "bvh"
+  },
+  "materials": [
+    {
+      "name": "gray",
+      "type": "diffuse",
+      "albedo": [0.8, 0.8, 0.8]
+    },
+    {
+      "name": "floor",
+      "type": "diffuse",
+      "albedo": [0.95, 0.95, 0.95]
+    },
+    {
+      "name": "light",
+      "type": "diffuse_light",
+      "radiance": [1, 1, 1]
+    }
+  ],
+  "shapes": [
+    {
+      "type": "mesh",
+      "filename": "../assets/cube.obj",
+      "transform": [
+        {
+          "translate": [0, 0.5, 0]
+        },
+        {
+          "scale": [1, 9, 4]
+        }
+      ],
+      "material": "gray"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "y": [0, 0, -1],
+          "z": [0, 1, 0]
+        }
+      ],
+      "size": [24, 18],
+      "material": "floor"
+    },
+    {
+      "type": "triangle",
+      "name": "glowing wall1",
+      "positions": [
+        [-12, 0, 9],
+        [-12, 0, -9],
+        [-12, 10, -9]
+      ],
+      "material": "light"
+    },
+    {
+      "type": "triangle",
+      "name": "glowing wall2",
+      "positions": [
+        [-12, 0, 9],
+        [-12, 10, -9],
+        [-12, 10, 9]
+      ],
+      "material": "light"
+    }
+  ]
+}

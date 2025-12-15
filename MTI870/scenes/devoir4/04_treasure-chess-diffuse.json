@@ -1,0 +1,104 @@
+{
+  "paths": [
+    "../assets/treasure-chess/"
+  ],
+  "camera": {
+    "transform": {
+      "from": [ 2, 1.5, -4 ],
+      "at" : [0, -0.5, 0]
+    },
+    "vfov": 30,
+    "resolution": [ 640, 480 ]
+  },
+  "background": 0.4,
+  "sampler": {
+    "type": "independent",
+    "samples": 128
+  },
+  "accelerator": {
+    "type": "bvh",
+    "builder": "median"
+  },
+  "materials": [
+    {
+      "name": "chess",
+      "type": "diffuse",
+      "albedo": "textures/treasure_chest_diff_2k.jpg"
+    },
+    {
+      "name": "mat_plane",
+      "type": "diffuse",
+      "albedo": {
+        "type": "checkerboard2d",
+        "uv_scale": [ 100, 100 ],
+        "uv_offset": [ 5, 5 ]
+      }
+    },
+    {
+      "name": "light",
+      "type": "diffuse_light",
+      "radiance": [ 4.0, 0.8, 0.8 ]
+    }
+  ],
+  "shapes": [
+    {
+      "type": "mesh",
+      "filename": "treasure_chest_2k.obj",
+      "material": "chess",
+      "transform": [
+        {
+          "scale": 2.0
+        },
+        {
+          "translate": [ 0, -1.0, 0 ]
+        }
+      ]
+    },
+    {
+      "type": "quad",
+      "transform": {
+        "o": [
+          0,
+          5,
+          0
+        ],
+        "x": [
+          1,
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0,
+          -1
+        ],
+        "z": [ 0, -1, 0 ]
+      },
+      "size": 5,
+      "material": "light"
+    },
+    {
+      "type": "quad",
+      "transform": {
+        "o": [
+          0,
+          -1,
+          0
+        ],
+        "x": [
+          1,
+          0,
+          0
+        ],
+        "y": [
+          0,
+          0,
+          -1
+        ],
+        "z": [ 0, 1, 0 ]
+      },
+      "size": 100,
+      "material": "mat_plane"
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "camera": {
+    "transform": {
+      "o": [0, 0, 10]
+    },
+    "vfov": 45,
+    "resolution": [640, 480]
+  },
+  "sampler": {
+    "type": "independent",
+    "samples": 100
+  },
+  "background": [1, 1, 1],
+  "materials": [
+    {
+      "type": "diffuse",
+      "name": "white"
+    },
+    {
+      "type": "diffuse",
+      "name": "red",
+      "albedo": [0.9, 0.1, 0.1]
+    },
+    {
+      "type": "diffuse",
+      "name": "blue",
+      "albedo": [0.1, 0.1, 0.9]
+    },
+    {
+      "type": "metal",
+      "name": "m1",
+      "roughness": 0.0
+    },
+    {
+      "type": "metal",
+      "name": "m2",
+      "roughness": 0.2
+    },
+    {
+      "type": "metal",
+      "name": "m3",
+      "roughness": 0.4
+    },
+    {
+      "type": "metal",
+      "name": "m4",
+      "roughness": 0.8
+    },
+    {
+      "type": "metal",
+      "name": "m5",
+      "roughness": 1.0
+    }
+  ],
+  "shapes": [
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": -90
+        },
+        {
+          "translate": [0, -1, 0]
+        }
+      ],
+      "size": 100,
+      "material": "white"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [-2.0, -0.7, 4.0]
+      },
+      "radius": 0.3,
+      "material": "red"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [2.0, -0.7, 4.0]
+      },
+      "radius": 0.3,
+      "material": "blue"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [-4.0, 0.0, 0]
+      },
+      "radius": 1.0,
+      "material": "m1"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [-2.0, 0.0, 0]
+      },
+      "radius": 1.0,
+      "material": "m2"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [0.0, 0.0, 0]
+      },
+      "radius": 1.0,
+      "material": "m3"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [2.0, 0.0, 0]
+      },
+      "radius": 1.0,
+      "material": "m4"
+    },
+    {
+      "type": "sphere",
+      "transform": {
+        "translate": [4.0, 0.0, 0]
+      },
+      "radius": 1.0,
+      "material": "m5"
+    }
+  ]
+}

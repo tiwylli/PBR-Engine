@@ -1,0 +1,127 @@
+<meta charset="utf-8" emacsmode="-*- markdown -*-">
+
+**SDE885 - Assignment 0 - Version 1.04**
+
+Assignment Objectives
+===============================================================================
+- Retrieve the starter code and set up your own Git repository  
+- Set up your working environment and compile your code  
+- Practice using programming libraries  
+
+Retrieving the Starter Code
+===============================================================================
+
+## Installing Git
+
+You must have Git installed on your computer and properly configured.
+
+- Windows: https://git-scm.com/download/win  
+- Linux: https://git-scm.com/download/linux  
+- macOS: https://git-scm.com/download/mac  
+
+Git is a command-line program: open Git Bash to enter the following commands, or use a terminal if you are on GNU/Linux or macOS.
+
+![Example Git Bash on Windows](imgs/d0-git.png)
+
+## GitHub Classroom
+
+Assignments will be done through GitHub Classroom. To participate, you need to create a GitHub account.  
+
+__The link to join the GitHub Classroom is available on Moodle. Be careful to use the correct link depending on whether you choose Rust or C++.__
+
+!!! ERROR: Attention  
+    You may experiment with both languages in Assignment 0. However, after Assignment 1, it will be very difficult to switch programming languages.
+
+You can follow the official GitHub documentation for configuration: https://docs.github.com/en/get-started/quickstart/set-up-git  
+
+## Your Own Git Repository
+
+After accepting the GitHub Classroom invitation, a new private Git repository will be created.  
+To clone this repository, you must use the following command:
+```bash
+git clone --recursive <URL-du-depot>
+```
+If you did not use the `--recursive` option, you can run the following two commands to properly initialize the dependencies:
+```bash
+git submodule update --init --recursive
+```
+!!! WARNING  
+    This working directory will be used for all assignments (from the first to the last). Be careful not to commit binaries or large files.  
+
+    Updates to this code will be provided either through a *pull request* or a patch.  
+
+!!! ERROR: Attention  
+    Your repository must contain *your own solution*. This directory must remain *private*. It is not allowed to make this repository public for any reason.  
+
+Environment Setup
+===============================================================================
+
+Assignments in this course will be done in either C++ or Rust. The following programs must be installed on your personal machine:  
+- Git: version control, used to retrieve and synchronize the starter code  
+- CMake: enables cross-platform compilation  
+- Recent C++ compiler: must support at least C++17  
+
+This first assignment describes the setup steps for different platforms (Windows, Linux, macOS).  
+
+For Rust, I will only describe its installation on Windows and Visual Studio Code.  
+
+Visual Studio Code (all platforms / Rust)
+------------------------------------------------------------------------------
+
+To install Rust on your machine, use the following site: https://rustup.rs/. This site will ask you to run a command or launch a local installer. This will install the latest stable version of Rust.  
+
+Next, install Visual Studio Code: https://code.visualstudio.com/.  
+
+Finally, launch Visual Studio Code with your project and install the following extension: `rust-analyzer`. Note that during installation or at restart, Visual Studio Code may ask you to install additional components for Rust (via Cargo). Accept them.  
+![VS Code extension installation - Rust](imgs/d0-code-ext-rust.png)  
+
+To compile Assignment 0, open a terminal and run the following command in the project folder:  
+```
+cargo run --release --example=devoir0 --
+```
+All dependencies as well as the starter code will compile automatically.  
+
+Assignment
+===============================================================================
+
+In this assignment, we will get familiar with some concepts covered in class related to colors and linear algebra.  
+Open the file corresponding to the assignment: `examples/devoir0.rs`.  
+You will edit this file directly. Do not be intimidated by its size: it contains many comments. Read them carefully, as they provide instructions on how to complete the different tasks.  
+
+You can use the following command to recompile and run the code:  
+```
+cargo run --release --example=devoir0 --
+```
+Note that the working directory is the folder where `cargo` is executed.  
+
+## Task 1: Linear Algebra
+
+Go to the function `task_1_maths()` and fix all the __TODO__ items as well as any errors displayed during execution.  
+
+## Task 2: Colors and Images
+
+Go to the function `task_2_images(...)` and fix all the __TODO__ items as well as any errors displayed during execution.  
+
+The image corresponding to the bilinear interpolation you must obtain is the following:  
+
+![This image is also available in `scenes/devoir0/ref-bilinear.png`](../scenes/devoir0/ref-bilinear.png)  
+
+The image corresponding to the grayscale conversion of `../scenes/devoir0/island.jpg` is the following:  
+
+![This image is also available in `scenes/devoir0/ref-luminance.png`](../scenes/devoir0/ref-luminance.png)  
+
+If you have issues loading the `island.jpg` image, you can use the `-i` argument to specify another path.  
+
+## Submitting Your Assignment
+Submit on Moodle an archive containing:  
+- `devoir_0.rs`  
+- the execution log of the assignment `devoir_0_output.txt`. To generate this log:  
+  `cargo run --release --example=devoir0 -- -l devoir_0_output.txt`
+
+<!-- Markdeep: -->
+<style class="fallback">
+    body {
+        visibility: hidden
+    }
+</style>
+<script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script> 

@@ -1,0 +1,133 @@
+{
+  "background": {
+    "type": "constant",
+    "value": [0.05087608844041824, 0.05087608844041824, 0.05087608844041824]
+  },
+  "integrator": {
+    "type": "path",
+    "strategy": "mis"
+  },
+  "accelerator": {
+    "type": "bvh"
+  },
+  "materials": [
+    {
+      "type": "principled_bsdf",
+      "name": "blue_crystal",
+      "base_color": [0.141, 0.223, 0.478],
+      "specular_transmission": 0.0,
+      "metallic": 0.8,
+      "subsurface": 0.4,
+      "specular": 0.5,
+      "roughness": 0.3,
+      "specular_tint": 0.2,
+      "anisotropic": 0.0,
+      "sheen": 0.0,
+      "sheen_tint": 0.0,
+      "clearcoat": 0.5,
+      "clearcoat_gloss": 0.9,
+      "eta": 1.5
+    },
+    {
+      "type": "diffuse",
+      "name": "DEFAULT",
+      "albedo": [0.8, 0.8, 0.8]
+    },
+    {
+      "type": "diffuse",
+      "albedo": {
+        "type": "constant",
+        "value": [0.8000000715255737, 0.8000000715255737, 0.8000000715255737]
+      },
+      "name": "backdrop"
+    },
+    {
+      "type": "diffuse",
+      "albedo": {
+        "type": "constant",
+        "value": [0.8000000715255737, 0.8000000715255737, 0.8000000715255737]
+      },
+      "name": "inside"
+    },
+    {
+      "name": "mat_plane",
+      "type": "diffuse",
+      "albedo": {
+        "type": "checkerboard2d",
+        "uv_scale": [100, 100],
+        "uv_offset": [5, 5]
+      }
+    },
+    {
+      "type": "diffuse_light",
+      "radiance": {
+        "type": "constant",
+        "value": [6.399999618530273, 6.399999618530273, 6.399999618530273]
+      },
+      "name": "Material.001"
+    }
+  ],
+  "camera": {
+    "resolution": [512, 512],
+    "vfov": 23.37,
+    "fdist": 1.0,
+    "transform": {
+      "from": [0.0, -8.099034309387207, 3.629617214202881],
+      "at": [0.0, -7.156611442565918, 3.295193672180176],
+      "up": [0.0, 0.3344235420227051, 0.9424228668212891]
+    }
+  },
+  "sampler": {
+    "type": "independent",
+    "samples": 100
+  },
+  "shapes": [
+    {
+      "type": "mesh",
+      "filename": "meshes/00001/mitsuba_mat0.obj",
+      "material": "backdrop",
+      "transform": {
+        "matrix": [
+          1.0, 0.0, 0.0, 0.0, 0.0, 7.549790126404332e-8, -1.0, 0.0, 0.0, 1.0,
+          7.549790126404332e-8, 0.0, 0.0, 0.0, 0.0, 1.0
+        ]
+      }
+    },
+    {
+      "type": "mesh",
+      "filename": "meshes/00001/mitsuba_mat1.obj",
+      "material": "inside",
+      "transform": {
+        "matrix": [
+          1.0, 0.0, 0.0, 0.0, 0.0, 7.549790126404332e-8, -1.0, 0.0, 0.0, 1.0,
+          7.549790126404332e-8, 0.0, 0.0, 0.0, 0.0, 1.0
+        ]
+      }
+    },
+    {
+      "type": "mesh",
+      "filename": "meshes/00001/mitsuba_mat2.obj",
+      "material": "case",
+      "transform": {
+        "matrix": [
+          1.0, 0.0, 0.0, 0.0, 0.0, 7.549790126404332e-8, -1.0, 0.0, 0.0, 1.0,
+          7.549790126404332e-8, 0.0, 0.0, 0.0, 0.0, 1.0
+        ]
+      }
+    },
+    {
+      "type": "mesh",
+      "filename": "meshes/00001/Plane_mat0.obj",
+      "material": "Material.001",
+      "transform": {
+        "matrix": [
+          -1.0, 4.4013450661850584e-8, -3.8122541923257813e-7,
+          0.058636244386434555, -2.0272497636142361e-7, 0.7828911542892456,
+          0.6221587061882019, -2.638631820678711, 3.2584136988589307e-7,
+          0.6221587061882019, -0.7828911542892456, 4.620535373687744, 0.0, 0.0,
+          0.0, 1.0
+        ]
+      }
+    }
+  ]
+}

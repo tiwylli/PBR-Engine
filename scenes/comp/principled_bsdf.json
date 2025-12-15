@@ -1,0 +1,108 @@
+{
+  "camera": {
+    "transform": {
+      "o": [0, 0, 4]
+    },
+    "vfov": 45,
+    "resolution": [1024, 1024]
+  },
+  "background": [0, 0, 0],
+  "sampler": {
+    "type": "independent",
+    "samples": 256
+  },
+  "materials": [
+    {
+      "name": "mat_sphere",
+      "type": "principled_bsdf",
+      "base_color": [0.913, 0.562, 1.0],
+      "specular_transmission": 1.0,
+      "metallic": 0.0,
+      "subsurface": 0.0,
+      "specular": 0.3,
+      "roughness": 0.1,
+      "specular_tint": 0.9,
+      "anisotropic": 0.0,
+      "sheen": 0.0,
+      "sheen_tint": 0.0,
+      "clearcoat": 0.0,
+      "clearcoat_gloss": 0.9,
+      "eta": 1.5
+    },
+    {
+      "name": "dielectric",
+      "type": "dielectric",
+      "ks": [0.2, 0.2, 0.8],
+      "roughness": 0.01
+    },
+    {
+      "name": "diffuse",
+      "type": "diffuse",
+      "albedo": 0.8
+    },
+    {
+      "name": "mat_plane",
+      "type": "diffuse",
+      "albedo": {
+        "type": "checkerboard2d",
+        "uv_scale": [100, 100],
+        "uv_offset": [5, 5]
+      }
+    },
+    {
+      "name": "checkerboard",
+      "type": "diffuse",
+      "albedo": {
+        "type": "checkerboard2d",
+        "color1": [0.8, 0.1, 0.1],
+        "color2": [0.1, 0.1, 0.8],
+        "uv_scale": [10, 10]
+      }
+    },
+    {
+      "type": "diffuse_light",
+      "name": "light",
+      "radiance": [1.5, 1.5, 1.5]
+    }
+  ],
+  "shapes": [
+    {
+      "type": "sphere",
+      "radius": 1,
+      "material": "mat_sphere"
+    },
+    {
+      "type": "sphere",
+      "radius": 1,
+      "material": "checkerboard",
+      "transform": {
+        "translate": [-2, 0, -3]
+      }
+    },
+    {
+      "type": "quad",
+      "transform": {
+        "o": [0, -1, 0],
+        "x": [1, 0, 0],
+        "y": [0, 0, -1],
+        "z": [0, 1, 0]
+      },
+      "size": 100,
+      "material": "mat_plane"
+    },
+    {
+      "type": "quad",
+      "transform": [
+        {
+          "axis": [1, 0, 0],
+          "angle": 90
+        },
+        {
+          "translate": [0, 2, 0]
+        }
+      ],
+      "size": [10, 5],
+      "material": "light"
+    }
+  ]
+}

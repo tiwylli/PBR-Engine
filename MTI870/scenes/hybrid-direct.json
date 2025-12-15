@@ -1,0 +1,9 @@
+{
+  "integrator": {
+    "type": "hybrid_direct"
+  },
+  "accelerator": {
+    "type": "bvh",
+    "builder": "median"
+  }
+}

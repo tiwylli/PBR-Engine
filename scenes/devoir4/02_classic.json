@@ -1,0 +1,82 @@
+{
+  "camera": {
+    "transform": {
+      "o": [0, 0, -4],
+      "z": [0, 0, -1]
+    },
+    "vfov": 45,
+    "resolution": [640, 480]
+  },
+  "background": [1, 1, 1],
+  "sampler": {
+    "type": "independent",
+    "samples": 16
+  },
+  "accelerator": {
+    "type": "bvh",
+    "builder": "median"
+  },
+  "materials": [
+    {
+      "name": "mat_bunny",
+      "type": "diffuse",
+      "albedo": [0.6, 0.4, 0.4]
+    },
+    {
+      "name": "mat_buddha",
+      "type": "diffuse",
+      "albedo": [0.4, 0.6, 0.4]
+    },
+    {
+      "name": "mat_dragon",
+      "type": "diffuse",
+      "albedo": [0.4, 0.4, 0.6]
+    },
+    {
+      "name": "mat_plane",
+      "type": "diffuse",
+      "albedo": [0.75, 0.75, 0.75]
+    }
+  ],
+  "shapes": [
+    {
+      "type": "mesh",
+      "filename": "../assets/bunny.obj",
+      "material": "mat_bunny",
+      "transform": [
+        {
+          "axis": [0, 1, 0],
+          "angle": -110
+        },
+        { "translate": [-1.2, -1.0, 0] }
+      ]
+    },
+    {
+      "type": "mesh",
+      "filename": "../assets/buddha.obj",
+      "material": "mat_buddha",
+      "transform": [{ "scale": 2.0 }, { "translate": [0, -0.11, 0] }]
+    },
+    {
+      "type": "mesh",
+      "filename": "../assets/dragon.obj",
+      "material": "mat_dragon",
+      "transform": [
+        { "scale": 2.0 },
+        { "axis": [0, 1, 0], "angle": -20 },
+        { "translate": [1.3, -0.46, 0.0] }
+      ]
+    },
+    {
+      "type": "quad",
+      "transform": {
+        "o": [0, -1, 0],
+        "x": [1, 0, 0],
+        "y": [0, 0, -1],
+        "z": [0, 1, 0]
+      },
+      "size": 100,
+      "material": "mat_plane"
+    }
+  ]
+}

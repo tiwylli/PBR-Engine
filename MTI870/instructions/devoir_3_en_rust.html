@@ -1,0 +1,511 @@
+<meta charset="utf-8" emacsmode="-*- markdown -*-">
+
+<title>SDE885 - Assignment 3 - Monte Carlo II (Rust) - Version 1.05</title>
+**SDE885 - Assignment 3 - Monte Carlo II (Rust) - Version 1.05**
+
+# Assignment Objectives
+
+- Implement the intersection with a triangle.  
+- Implement light source sampling.  
+- Integrate the **mixture/MIS** combination for lighting and material sampling.  
+- Implement a **path tracing** algorithm with *Multiple Importance Sampling* and *next-event estimation*.
+
+# Updating Your Code (archive available on Moodle)
+
+First of all, **commit and push your changes to GitHub** to avoid losing work in case of an error or mishandling.
+
+As in Assignment 2, a pull request is available on GitHub.
+
+Then, add the following method to the `Scene` class if it is not already present:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub fn visible(&self, p0: &Point3, p1: &Point3) -> bool {
+    // Compute direction between p1 and p0
+    let d = p1 - p0;
+    let dist = d.magnitude();
+    let d = d / dist;
+
+    // Account for tmin and tmax
+    let dist = dist - crate::constants::RAY_EPS * 2.0;
+
+    // Check if there is an intersection between p0 and p1
+    let r = Ray::new(p0, &d).with_distance_max(dist);
+    self.hit(&r).is_none()
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This function evaluates **visibility** between two points: it returns `true` if no object exists between `p0` and `p1`.  
+It will be used to test visibility between the point sampled on the light and the shading point.
+
+# Updating the `Intersection` Structure
+
+Add a new attribute `shape` to the `Intersection` structure.  
+This attribute identifies the **intersected shape**, which is necessary to determine whether the surface hit is a light source and to compute the associated probability density.
+
+Update your `hit` implementations in the `quad`, `sphere`, and `triangle` shapes to properly initialize this new attribute.
+
+After modification, your `Intersection` structure, defined in `src/shapes/mod.rs`, should look like this:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub struct Intersection<'a> {
+    /// Intersection distance
+    pub t: f64,
+    /// Intersection point
+    pub p: Point3,
+    /// Surface normal
+    pub n: Vec3,
+    /// Material at the intersection point
+    pub material: &'a dyn Material,
+    /// Intersected shape
+    pub shape: &'a dyn Shape, // **NEW**
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Please modify all `hit` methods to initialize this new attribute (`its.shape = this;` or equivalent) to fix the compilation error.
+
+## Changes
+The updates to your code are available in the following pull request:
+- Added new shapes: Triangle, Mesh. Mesh allows you to load Obj files. You will need to implement triangle intersection (Task 1).
+
+Note that the `json_to_shape` function now returns an object that distinguishes between a Mesh and other shapes.  
+Indeed, in the case of a Mesh, we convert it into a list of triangles. This object allows us to make this distinction.
+
+# Assignment (90 pts)
+
+The validation process for this assignment will be similar to that of Assignment 2:
+
+1. Use the `test` executable to verify your different shapes and their sampling.  
+   The code is available in `devoirs/test.cpp`.  
+2. Use test scenes to evaluate direct and indirect lighting.  
+
+Please **uncomment** the code in `lambda_pdf` and `lambda_sample` in `examples/test.rs` for the shapes. These functions are located near the end of the file.
+
+This will allow you to test your implementation.  
+Note that this code may call methods that you have not yet implemented, which can cause compilation errors; you may comment them out temporarily.
+
+!!! WARN: Reminder
+    It is **very important** to validate your results using the `test` executable.  
+    In particular, verify the following:
+    - Do you obtain distribution images similar to those found in `scenes/devoir3`?
+    - Does the probability density integrate to 1? If not, is it justified? (e.g., parts of a sphere surface not visible from the camera)
+    - Is the difference between the probability density and the observed samples close to 0?
+    - Is the sign of the difference distribution uniform? (green/red image)
+
+## Task 1: Ray–Triangle Intersection (10 pts)
+
+In this task, you must implement ray–triangle intersection.  
+We will use the [**Möller–Trumbore**](https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm) method.
+
+You can find implementations online, but it is **strongly recommended that you code it yourself** to fully understand how it works.
+
+!!! WARN: Attention
+    You must understand the principles of the [Möller–Trumbore](https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm) method.  
+    To do so, read [section 2](http://www.graphics.cornell.edu/pubs/1997/MT97.pdf) of the original paper, which corresponds to what was presented in class.  
+    This optimized method relies mainly on:
+    - The use of [Cramer’s rule](https://en.wikipedia.org/wiki/Cramer's_rule) to compute the inverse matrix;  
+    - The use of the [triple product](https://en.wikipedia.org/wiki/Triple_product) to compute the determinant.  
+
+    Detailed explanations are available in the lecture recording.
+
+Go to `src/shapes/triangle.rs` and complete the `hit(...)` method.
+
+Triangle information is stored in an auxiliary object (`Mesh`).  
+The vertex positions and normals are already expressed in world space.  
+Fill in all fields of the intersection structure: distance, normal, position, and material.  
+
+If the mesh contains vertex normals (check with `has_normal()`), perform **barycentric interpolation**.  
+Otherwise, compute the normal using the **cross product** of the edges (as seen in class).
+
+Then render the scene `02_triangles.json` with the `normal` integrator.  
+The left triangle uses the geometric normal; the right one interpolates vertex normals.  
+You should obtain the following result:
+
+![`02_triangles`](../scenes/devoir3/ref-02_triangles.png border="1")
+
+You can then test more complex scenes such as `02_cornellbox.json`.  
+Reference images are located in `scenes/devoir3`.
+
+![`02_cornellbox.json`](../scenes/devoir3/ref-02_cornelbox.png border="1")
+
+## Task 2: Light Source Sampling (30 pts)
+
+You will now implement **direct sampling of light sources**.  
+
+The first step is to add two new methods, `sample_direct` and `pdf_direct`, for objects that can emit light.  
+Since several shapes can emit light, these methods will be added to the `Shape` class:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+// Sample a point on the light source from the shading point x
+fn sample_direct(&self, p: &Point3, sample: &Vec2) -> (EmitterSample, &dyn Shape);
+
+// Probability density in **solid angle** from x to point y
+fn pdf_direct(&self, shape: &dyn Shape, p: &Point3, y: &Point3, n: &Vec3) -> Real;
+
+// Returns the material associated with the shape (useful to identify a light)
+fn material(&self) -> &dyn Material;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The `sample_direct` method returns an `EmitterSample` object, representing a sample on the light source.  
+Some lights (e.g., *environment maps*) sample **directions** rather than **positions**.  
+If you plan to implement this type of sampling for the competition, see:  
+[PBRT – Infinite Area Lights](https://pbr-book.org/4ed/Light_Sources/Infinite_Area_Lights).  
+
+In this assignment, we will limit ourselves to sampling **geometric shapes**.  
+Thus, scenes containing *environment maps* (colored backgrounds) will not produce correct results—this is expected.
+
+The `EmitterSample` object is defined as follows:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+pub struct EmitterSample {
+    pub y: Point3, // Position on the light source
+    pub n: Vec3,   // Normal at the sampled point (if applicable)
+                   // otherwise n = normalize(x - p)
+    pub pdf: Real, // Probability density (in solid angle)
+}
+
+impl EmitterSample {
+    pub fn new() -> Self {
+        EmitterSample {
+            y: Point3::new(0.0, 0.0, 0.0),
+            n: Vec3::zero(),
+            pdf: 0.0,
+        }
+    }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Implement sampling for the following shapes:
+- **Quad**: uniform sampling  
+- **Triangle**: uniform sampling  
+- **Sphere**: uniform sampling (a more efficient version will be proposed as a bonus)
+
+!!! ERROR: Set of shapes and reference `shape`
+    The `sample_direct` method returns a reference to the sampled shape.  
+    This allows retrieving its material (via `material()`) to evaluate light contribution.  
+    For `quad`, `triangle`, and `sphere`, you can simply return `*this`.
+
+    Similarly, `pdf_direct` receives a reference to the sampled shape to compute the correct probability density when multiple lights exist in the scene.
+
+    Composite shapes (e.g., `ShapeGroup`) will be handled in **Task 3**.  
+    For now, you can return an empty sample (`EmitterSample()`) and zero density (`0.0`).
+
+!!! ERROR: Attention
+    Probability densities must be expressed in **solid angle**.  
+    When sampling a point on a light source, you initially work in **surface** space.  
+    To convert this density to solid angle, use the relation:
+    \[
+        p_\omega(\vec{\omega}) = p_a(x) \, \frac{d^2}{|\cos(\theta)|}
+    \]
+    where:
+    - \(p_a(x)\) is the surface density (in m⁻²),
+    - \(d\) is the distance between the shading point and the sampled point,
+    - \(\theta\) is the angle between the direction and the light surface normal.
+
+
+#### Validating Your Implementation
+
+Your implementation will be validated in two ways:
+
+1. **Using the `test` program** and the scenes located in `devoir3/tests`.  
+   The program works the same way as in Assignment 2.  
+   The produced images use a **spherical parameterization**: points sampled by emitters are projected toward the surface  
+   \( p = [0, 0, 0] \) with normal \( n = [0, 0, 1] \).  
+   It is **normal** for the PDF not to integrate to 1.0 for some shapes—for instance, when parts of the light surface are not visible.  
+
+2. **Using direct rendering**: in the next task, you will use your light sampling implementation to compute direct lighting.  
+   The obtained images should be **identical (within noise)** to those of Assignment 2 for the “direct lighting” part.  
+   > Note: light source sampling does not support materials with discrete components (e.g., perfect mirrors).
+
+### Shape: Quad
+
+Use **uniform sampling** on a rectangle.  
+Remember that it may undergo a transformation (position, size, orientation), which affects the probability density.  
+
+The surface PDF must be:
+\[
+p_A = \frac{1}{A}
+\]
+where \(A\) is the rectangle area.
+
+Also make sure to:
+- transform the sampled point and normal into world space;  
+- properly **normalize the normal**.
+
+### Shape: Triangle
+
+Sampling must be **uniform in surface space**.  
+Unlike rectangles, triangles **are not transformed**—they are already expressed in world space (for performance reasons).  
+Be sure to compute the corresponding normal correctly.
+
+A simple method is to consider a **parallelogram** and correct samples outside the triangle, as illustrated below:
+
+![Triangle sampling method](imgs/d3-triangle.png width=500 border="1")
+
+The random coordinates \((\xi_x, \xi_y)\) are your uniform variables.  
+If \(\xi_x + \xi_y > 1\), your point lies in the wrong half of the parallelogram:  
+in that case, use the coordinates \((1 - \xi_x, 1 - \xi_y)\).
+
+For more information, see section [13.6.5]() of the _Physically Based Rendering_ book.
+
+!!! Tips
+    The triangle area is given by:
+    \[
+    A = \frac{1}{2} \| (p_1 - p_0) \times (p_2 - p_0) \|
+    \]
+
+!!! Info
+    Other sampling parameterizations exist.  
+    This one introduces a slight discontinuity that may reduce the efficiency of certain advanced algorithms (e.g., stratification, MCMC).  
+    For further reading, see this paper on alternative triangle parameterizations:  
+    [https://hal.archives-ouvertes.fr/hal-02073696v2/document](https://hal.archives-ouvertes.fr/hal-02073696v2/document)
+
+
+### Shape: Sphere
+
+!!! WARN: Important
+    For this implementation, we only consider **rigid transformations** (no scaling).  
+    This greatly simplifies sampling.
+
+Here, you must implement **uniform sampling over the surface of a sphere**.  
+Reuse your spherical sampling function from Assignment 2 (e.g., `sample_spherical`),  
+making sure to account for the sphere’s actual radius, which may differ from 1.0.
+
+## Task 3: Set of Light Sources (5 pts)
+
+Implement a **uniform selection of one light source** among a set of objects.
+
+Adapt the `ShapeGroup::add_shape` method to update the list of light-emitting shapes.  
+To determine if a shape is a light, use its `material()` method.
+
+The code to integrate is provided below:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
+fn sample_direct(
+    &self,
+    p: &crate::vec::Point3,
+    sample: &crate::vec::Vec2,
+) -> (super::EmitterSample, &dyn Shape) {
+    let j = (sample.x * self.emitters.len() as f64) as usize;
+    let k = self.emitters[j];
+    // Rescale random number
+    let sample =
+        crate::vec::Vec2::new(sample.x * self.emitters.len() as f64 - j as f64, sample.y);
+    // Sample shape
+    let (mut ps, shape) = self.shapes[k].sample_direct(p, &sample);
+    ps.pdf *= 1.0 / self.emitters.len() as f64; // Update PDF
+    (ps, shape)
+}
+
+fn pdf_direct(
+    &self,
+    shape: &dyn Shape,
+    p: &crate::vec::Point3,
+    y: &crate::vec::Point3,
+    n: &crate::vec::Vec3,
+) -> crate::Real {
+    let pdf = 1.0 / self.emitters.len() as crate::Real;
+    pdf * shape.pdf_direct(shape, p, y, n)
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For reference, the `sample_direct` and `pdf_direct` methods model a uniform sampling over all light sources. More concretely, the sampling density is given by  
+\[
+    p(j) = \frac{1}{N} \, .
+\]
+
+The \(x\) component of the 2D random variable passed to `sample_direct` is used to select **both** a light source **and** a point on it. This is why you must transform the variable \(x\) so that this component remains in the interval \([0, 1]\).  
+For \(N\) light sources and sampled index \(j\), use:
+\[
+    x = (x N) - j
+\]
+to perform this transformation.
+
+!!! ERROR: Attention
+    Remember that the probability density is now equal to \(p(j) p(x \mid j)\), with \(p(j) = 1/N\) and \(p(x \mid j)\) the density associated with shape \(j\).  
+    Use this density in the `pdf_direct` and `sample_direct` methods of each shape.
+
+    **Be sure to return the selected shape in the `sample_direct` method for composite shapes, not `*this`.**
+
+    Reminder: for other shapes, simply return (e.g., `return { …, *this };`).
+
+Test your implementation with the scene `tests/group.json`.
+
+![](../scenes/devoir3/tests/group-pdf.png width=330 border="1")
+
+Finally, add these two methods to the `Scene` object so that you can sample a light source at the scene level.  
+These methods should directly call `sample_direct` and `pdf_direct` of the `m_root` attribute, which will simplify the following steps.
+
+## Task 4: Direct Lighting with Emitters (15 pts)
+
+We will now implement the sampling strategy `EEmitter`, corresponding to explicit light source sampling.
+
+!!! WARN: Attention
+    For this task, we use the **directional parameterization**.  
+    Indeed, in Task 2, the probability densities were expressed in **solid angle**, based on the light source surface normal (when applicable).
+
+!!! WARN: Reminder – `Scene` modification
+    It is recommended to add `sample_direct` and `pdf_direct` methods in the `Scene` object, which directly call those of the `m_root` attribute.
+
+If the material at the **shading point** is discrete (`have_delta() == true`), use only the sampling method proportional to the material (e.g., `sample`, as in the previous assignment).  
+Otherwise, use `Scene::sample_direct` to sample a point on a light source, then evaluate the direct lighting contribution in the directional parameterization.  
+To test visibility between two points, use `visible(x, y)` defined in `Scene`.
+
+Recall: correctly evaluate  
+- The BSDF value at the shading point, including the cosine term (via the `evaluate` method)  
+- The emitted radiance value: \(L_e(x, y)\)  
+- The visibility between the sampled point and the shading point  
+
+!!! WARN: Reminder
+    Don’t forget to divide by the probability of selecting both the light source **and** the point on it (expressed in solid angle).
+
+    Also pay close attention to the directions used to evaluate the BSDF and emitted radiance.  
+    By convention, directions are outgoing from both the shading point and the light source, and must be normalized.
+
+To validate your implementation, render the following scenes:  
+`odyssey_mats`, `odyssey_triangle_mats`.  
+Compare the results obtained with the `EBSDF` sampling strategy, as well as with the `04_materials-all` scene from the previous assignment (which includes materials with discrete components).
+
+![`odyssey_mats.json`](../scenes/devoir3/ref-odyssey_mats.png width=330 border="1") ![`odyssey_triangle_mats.json`](../scenes/devoir3/ref-odyssey_triangle_mats.png width=330 border="1")
+
+![`04_all-materials-direct.json`](../scenes/devoir2/04_all-materials-direct.png width=330 border="1")
+
+## Task 5: Direct Lighting with MIS (20 pts)
+
+We will now implement the `EMIS` sampling strategy, corresponding to explicit light source sampling with *Multiple Importance Sampling* (MIS).  
+The following pseudo-code illustrates the MIS technique, where `x` corresponds to the shading point and `y` to a point on the light source. `eval_bsdf(...)` is evaluated at the shading point, and `L_e(...)` on the light source.  
+Pay close attention to the computed directions. **Some functions expect normalized directions.**
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ python
+contrib = Color3()
+# Get material at the shading point
+mat = its.material()
+x = its.p
+
+# Emitter sampling
+[pdf_emitter1, y, emitter] = scene.sample_direct(x)
+if (visible(x, y) && !mat.is_delta()):
+    # MIS weight
+    pdf_bsdf1 = mat.pdf(x, y)
+    mis_w = pdf_emitter1 / (pdf_bsdf1 + pdf_emitter1)
+    
+    # Contribution (weighted by MIS weight)
+    # Reminder: mat.eval(...) returns the BSDF value multiplied by the cosine
+    contrib += mis_w * mat.eval(...) * emitter.L_e(...) / pdf_emitter1
+
+# BSDF sampling
+# weight_bsdf = mat.eval(...) / mat.pdf(...)
+[weight_bsdf, pdf_bsdf2, w] = mat.sample(x)
+if ([shape, y, n] = intersect_emitter(x, w)):
+    # MIS weight
+    mis_w = 1.0
+    if (!mat.is_delta()): # Explained in the assignment
+        pdf_emitter2 = scene.pdf_direct(shape, x, y, n)
+        mis_w = pdf_bsdf2 / (pdf_bsdf2 + pdf_emitter2)
+    
+    # Contribution (weighted by MIS weight)
+    contrib += mis_w * weight_bsdf * shape.L_e(...)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!!!
+    Note that, in the pseudo-code, we set the MIS weight to 1 when the material is specular.  
+    This effectively disables MIS in this case (the weight value is ignored).
+
+If you obtain incorrect results, check the following:
+- Are you using the correct **normalized directions**, expressed in the right space (local/world)?  
+- Are you using the correct probability densities (expressed in **solid angle**)?
+
+## Task 6: Ray Tracing with MIS (10 pts)
+
+Reuse your implementation of direct lighting with MIS to implement a ray tracing integrator with MIS.  
+To do so, duplicate your `path` integrator into a new integrator called `path_mis`, and modify it to use MIS direct lighting sampling.  
+It is recommended to define a `direct_mis` method as an adaptation of your direct lighting computation code, and to call this method inside the main ray tracing loop.  
+Refer to the lecture slides for more information on this implementation.
+
+Compare this implementation with the `path` integrator on the `04_all-materials` scene.
+
+## Bonus Task (up to 10 pts)
+
+!!! WARN: Attention
+    Bonus points will only be granted if all other tasks are implemented.  
+    Some of these tasks were not covered in class and may require significant time to complete. They are intended solely for those who wish to go further.
+
+Bonus tasks may also count toward the points for the rendering competition.
+
+### Improved Sphere Sampling (10 pts)
+
+Implement **uniform solid-angle sampling** for the sphere.  
+Instead of sampling a point uniformly over the entire sphere (or hemisphere), use the **directional domain** for better sampling.  
+The projection of a sphere from a point forms a cone in directional space.
+
+!!! WARN: Sampling Method
+    Add a boolean flag in the JSON file to enable/disable this sampling method.
+
+The first step is to determine the cone angle. Using trigonometry, we obtain:
+
+![Computation of $\theta_{max}$, Peter Shirley (Ray Tracing: The Rest of Your Life)](imgs/d3-theta-max.jpg)
+
+You can use the cosine expression and the Pythagorean theorem to derive:  
+\( \cos(\theta_{max}) = \sqrt{d^2 - r^2}/d \), where \( d = \lVert c - x \rVert \).
+
+!!! WARN: Attention
+    **In some cases, this equation is invalid.** What is the value of \(\theta_{max}\) in that case? Which sampling strategy should be used instead?
+
+    Reminder: the sphere's radius is not affected by a rigid transformation.
+
+If you obtain a valid value of \(\theta_{max}\), use your `sample_cone` strategy developed in Assignment 2.  
+Then, align the sampled direction toward the center of the source by constructing a local frame (`Frame` object) and transforming the direction accordingly.
+
+Finally, return a **point** sampled on the light source (from the direction).  
+To find this point, cast a ray from the shading point `p` in the sampled direction, then use the intersection data to fill the `EmitterSample` object.  
+Be careful about the **domain** in which the PDF is expressed.
+
+Test your implementation with the scene `tests/sphere.json`.  
+Your distribution should be uniform in solid angle.  
+Compare the performance of this method with uniform sphere sampling using the scenes `sphere_light_small.json`, `sphere_light_medium.json`, and `sphere_light_large.json`.
+
+**Submit your comparison results between the uniform and this new sampling method.**
+
+### Environment Map (10 pts)
+
+Create a new structure `EnvironmentMap` in `src/scene.rs`.  
+Move the `background` attribute of the scene into this new structure.  
+Adapt your scene code to use this structure (e.g., `Scene::background`).
+
+This object also has a bounding sphere radius computed as:
+\[
+    r = \max(\mathrm{aabb.diagonal}).
+\]
+
+Environment map sampling is simple: sample a **position** on a sphere of radius `r` centered at `p` (the point where direct lighting is evaluated).  
+The sampled point fills the `EmitterSample` object (no associated normal).  
+The probability density is \(1/(4\pi r^2)\) and must be **converted to solid angle**.
+
+Modify your shape collections to allow adding the environment map.  
+Also implement the corresponding PDF computation in `Scene`.  
+Finally, adapt your direct lighting and ray tracing code to support MIS with the environment map.
+
+### Reuse of Sampled Direction (5 pts)
+
+Reuse the direction sampled by materials for both **direct (MIS)** and **indirect** lighting computations.
+
+### Flux-Based Sampling (5 pts)
+
+Modify the interfaces of materials and shapes to allow computation of the **emitted flux**.  
+Use a 1D CDF to select light sources proportionally to their flux in the scene.  
+Verify your implementation using the scene `tests/group.json` (by adapting the test).
+
+# Submitting Your Assignment
+
+Create an archive containing:
+- all files from the `include`, `devoirs`, and `src` directories;  
+- all images generated for this assignment (in **OpenEXR** format);  
+- a PDF file containing your written answers to the assignment questions (including images if necessary).
+
+Submit this archive on Moodle. Be mindful of the submission deadline (see Moodle).
+
+<!-- Markdeep: -->
+<style class="fallback">
+    body {
+        visibility: hidden
+    }
+</style>
+<script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script> 

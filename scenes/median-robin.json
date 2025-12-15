@@ -1,0 +1,7 @@
+{
+    "accelerator": {
+      "type": "bvh",
+      "builder": "median",
+      "axis_selection" : "roundrobin"
+    }
+}
