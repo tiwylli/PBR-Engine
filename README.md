@@ -10,3 +10,7 @@
 ## Rapport
 
 [Rapport (PDF)](rapport/rapport.pdf)
+
+## Résultat de rendu
+
+![Rendu final](outputs/f112.png)
